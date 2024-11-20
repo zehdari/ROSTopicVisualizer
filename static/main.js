@@ -1,6 +1,6 @@
 const socket = io.connect("http://localhost:5000");
 const charts = {}; // Store Plotly chart data and layout by topic
-const timeWindow = 30 * 1000; // 30 seconds in milliseconds
+const timeWindow = 30 * 1000; // Time window for charts
 
 socket.on("ros2_data", (msg) => {
   const topic = msg.topic;
@@ -55,16 +55,16 @@ function createPlotForTopic(topic, data) {
       xaxis: {
         title: "Time",
         showgrid: true,
-        type: "date", // Interpret timestamps as dates
-        tickformat: "%H:%M:%S", // Show time in hh:mm:ss format
+        type: "date",
+        tickformat: "%H:%M:%S",
         range: [new Date(Date.now() - timeWindow), new Date()],
       },
       yaxis: { title: "Value", showgrid: true },
-      margin: { t: 10, l: 40, r: 10, b: 50 }, // Adjusted bottom margin
+      margin: { t: 10, l: 40, r: 10, b: 50 },
       height: 300,
     },
     rateDivId: rateDiv.id,
-    timestamps: [], // Keep track of timestamps for Hz calculation
+    timestamps: [],
   };
 
   Plotly.newPlot(plotDiv.id, charts[topic].data, charts[topic].layout);
@@ -91,12 +91,10 @@ function parseData(data, prefix, traces) {
   }
 }
 
-// Interval to update graphs and reset Hz if no data is received
 setInterval(() => {
   const currentTime = new Date();
 
   Object.values(charts).forEach((chart) => {
-    // Update the x-axis range to keep the graph moving
     const newRange = [
       new Date(currentTime.getTime() - timeWindow),
       currentTime,

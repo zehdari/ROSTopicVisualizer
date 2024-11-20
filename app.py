@@ -3,18 +3,17 @@ from flask_socketio import SocketIO, emit
 import rclpy
 from rclpy.node import Node
 from threading import Thread
-from ros_topics import TOPICS  # Import topics and message types
+from ros_topics import TOPICS
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = ''
 socketio = SocketIO(app, cors_allowed_origins="*")
-
 
 # ROS 2 Node for dynamic subscriptions
 class ROS2WebStreamer(Node):
     def __init__(self):
         super().__init__('ros2_web_streamer')
-        self.subscriptions_dict = {}  # Avoid name conflict with `rclpy.Node`
+        self.subscriptions_dict = {} 
 
     def add_subscription(self, topic_name, msg_type):
         if topic_name in self.subscriptions_dict:
@@ -33,7 +32,7 @@ class ROS2WebStreamer(Node):
         msg_dict = self.message_to_dict(msg)
         socketio.emit('ros2_data', {'topic': topic_name, 'data': msg_dict})
 
-    # This may need updated for various message types
+    # This may need updated for various message types, this is how the ros msgs are parsed
     def message_to_dict(self, msg):
         # Convert ROS 2 message to a dictionary
         if hasattr(msg, '__slots__') and hasattr(msg, '_fields_and_field_types'):
