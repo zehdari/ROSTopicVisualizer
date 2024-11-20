@@ -33,6 +33,7 @@ class ROS2WebStreamer(Node):
         msg_dict = self.message_to_dict(msg)
         socketio.emit('ros2_data', {'topic': topic_name, 'data': msg_dict})
 
+    # This may need updated for various message types
     def message_to_dict(self, msg):
         # Convert ROS 2 message to a dictionary
         if hasattr(msg, '__slots__') and hasattr(msg, '_fields_and_field_types'):

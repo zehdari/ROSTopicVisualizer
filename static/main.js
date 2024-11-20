@@ -1,11 +1,3 @@
-if (typeof Plotly === "undefined") {
-  console.error(
-    "Plotly library not loaded. Ensure the CDN or local file is accessible."
-  );
-} else {
-  console.log("Plotly library loaded successfully.");
-}
-
 const socket = io.connect("http://localhost:5000");
 const charts = {}; // Store Plotly chart data and layout by topic
 const timeWindow = 30 * 1000; // 30 seconds in milliseconds
@@ -26,10 +18,26 @@ function createPlotForTopic(topic, data) {
   const container = document.createElement("div");
   container.className = "chart-container";
 
+  // Add a div for topic name and rate
+  const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.width = "100%";
+
   const title = document.createElement("div");
   title.className = "chart-title";
   title.textContent = topic;
-  container.appendChild(title);
+
+  const rateDiv = document.createElement("div");
+  rateDiv.id = `rate-${topic}`;
+  rateDiv.style.fontSize = "12px";
+  rateDiv.style.color = "#888";
+  rateDiv.style.marginRight = "10px";
+  rateDiv.textContent = "Hz: Calculating...";
+
+  header.appendChild(title);
+  header.appendChild(rateDiv);
+  container.appendChild(header);
 
   const plotDiv = document.createElement("div");
   plotDiv.id = `plot-${topic}`;
@@ -55,6 +63,8 @@ function createPlotForTopic(topic, data) {
       margin: { t: 10, l: 40, r: 10, b: 50 }, // Adjusted bottom margin
       height: 300,
     },
+    rateDivId: rateDiv.id,
+    timestamps: [], // Keep track of timestamps for Hz calculation
   };
 
   Plotly.newPlot(plotDiv.id, charts[topic].data, charts[topic].layout);
@@ -81,6 +91,28 @@ function parseData(data, prefix, traces) {
   }
 }
 
+// Interval to update graphs and reset Hz if no data is received
+setInterval(() => {
+  const currentTime = new Date();
+
+  Object.values(charts).forEach((chart) => {
+    // Update the x-axis range to keep the graph moving
+    const newRange = [
+      new Date(currentTime.getTime() - timeWindow),
+      currentTime,
+    ];
+    chart.layout.xaxis.range = newRange;
+
+    // Check if the topic has stopped publishing
+    if (chart.lastReceived && currentTime - chart.lastReceived > 1000) {
+      document.getElementById(chart.rateDivId).textContent = `Hz: 0.00`;
+    }
+
+    // Update the plot with the new range (no data changes)
+    Plotly.update(chart.divId, chart.data, chart.layout);
+  });
+}, 100); // Update every 100ms
+
 function updatePlotData(chart, data, timestamp) {
   const flatData = {};
   flattenData(data, "", flatData);
@@ -99,12 +131,41 @@ function updatePlotData(chart, data, timestamp) {
     }
   });
 
+  // Update the last received timestamp for this chart
+  chart.lastReceived = timestamp;
+
   // Synchronize the x-axis range for all graphs
   const currentTime = timestamp;
   chart.layout.xaxis.range = [
     new Date(currentTime.getTime() - timeWindow),
     currentTime,
   ];
+
+  // Calculate and update the Hz
+  chart.timestamps.push(timestamp);
+  const hzWindow = 1500; // 1.5 seconds window for stability
+  const minHzTime = new Date(timestamp.getTime() - hzWindow);
+  chart.timestamps = chart.timestamps.filter((t) => t >= minHzTime);
+
+  if (chart.timestamps.length > 1) {
+    const timeDifferences = chart.timestamps
+      .map((t, i, arr) => {
+        if (i === 0) return 0; // No difference for the first timestamp
+        return (t - arr[i - 1]) / 1000; // Difference in seconds
+      })
+      .filter((diff) => diff > 0); // Filter valid intervals
+
+    const avgHz =
+      timeDifferences.length > 0
+        ? 1 / (timeDifferences.reduce((a, b) => a + b) / timeDifferences.length)
+        : 0;
+    const roundedHz = avgHz.toFixed(2);
+
+    document.getElementById(chart.rateDivId).textContent = `Hz: ${roundedHz}`;
+  } else {
+    // If only one timestamp, display a default minimum Hz
+    document.getElementById(chart.rateDivId).textContent = `Hz: 1.00`;
+  }
 
   Plotly.update(chart.divId, chart.data, chart.layout);
 }
