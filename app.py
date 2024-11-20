@@ -3,8 +3,7 @@ from flask_socketio import SocketIO, emit
 import rclpy
 from rclpy.node import Node
 from threading import Thread
-from geometry_msgs.msg import Twist  # Example message type
-from std_msgs.msg import Bool, Float64       # Example message type
+from ros_topics import TOPICS  # Import topics and message types
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -49,6 +48,7 @@ class ROS2WebStreamer(Node):
         else:
             return str(msg)  # Fallback for unrecognized types
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -59,14 +59,8 @@ def ros2_thread():
     rclpy.init()
     streamer = ROS2WebStreamer()
 
-    # Define the topics and their message types here
-    topics = [
-        {'name': '/turtle1/cmd_vel', 'type': Twist},  # Example topic
-        {'name': '/turtle_enabled', 'type': Bool},
-        {'name': '/sin_wave', 'type': Float64}# Add more topics as needed
-    ]
-
-    for topic in topics:
+    # Add subscriptions from TOPICS
+    for topic in TOPICS:
         streamer.add_subscription(topic['name'], topic['type'])
 
     rclpy.spin(streamer)
