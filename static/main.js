@@ -168,6 +168,22 @@ function updatePlotData(chart, data, timestamp) {
   Plotly.update(chart.divId, chart.data, chart.layout);
 }
 
+window.addEventListener("resize", () => {
+  Object.values(charts).forEach((chart) => {
+    // Get the chart container element
+    const plotDiv = document.getElementById(chart.divId);
+
+    // Update the layout dimensions based on the container size
+    const newWidth = plotDiv.offsetWidth;
+    const newHeight = 300; // Adjust height as needed
+
+    Plotly.relayout(chart.divId, {
+      width: newWidth,
+      height: newHeight,
+    });
+  });
+});
+
 function flattenData(data, prefix, result) {
   for (const [key, value] of Object.entries(data)) {
     if (typeof value === "object" && value !== null) {
