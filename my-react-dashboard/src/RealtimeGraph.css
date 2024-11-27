@@ -2,10 +2,11 @@
 .realtime-graph-container {
   display: flex;
   flex-direction: row-reverse; /* Sidebar on the left */
-  height: 100vh;
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
+  flex: 1 1 auto; /* Allow it to grow and shrink based on content */
+  margin-bottom: 20px; /* Optional: Add spacing below if needed */
 }
 
 /* Visible Graphs */
@@ -16,7 +17,7 @@
   justify-content: center;
   align-content: flex-start;
   align-items: flex-start;
-  overflow-y: auto;
+  padding: 10px;
 }
 
 /* Hidden Graphs Sidebar */
@@ -25,15 +26,8 @@
   background-color: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
   padding: 10px;
-  overflow-y: auto;
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
-}
-
-.hidden-graphs-sidebar h4 {
-  margin-top: 0;
-  text-align: center;
-  color: var(--highlight-color);
 }
 
 /* Hidden Graph Item */
