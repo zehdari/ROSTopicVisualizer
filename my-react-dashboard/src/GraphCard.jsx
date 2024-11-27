@@ -14,12 +14,9 @@ import { useRosTopic } from "./useRosTopic";
 const maxDataPoints = 50; // Limit the number of points displayed on the graph
 const frequencyWindow = 5; // Number of recent messages to calculate frequency
 
-const GraphCard = ({ topicConfig }) => {
+const GraphCard = ({ topicConfig, graphVisible, toggleVisibility }) => {
   const [data, setData] = useState([]);
   const [frequency, setFrequency] = useState(0);
-
-  // State to track active lines
-
   const [activeLines, setActiveLines] = useState(
     topicConfig.graphKeys.reduce((acc, key) => {
       acc[key.key] = true; // Initialize all lines as active
@@ -32,35 +29,30 @@ const GraphCard = ({ topicConfig }) => {
     `${topicConfig.package}/msg/${topicConfig.type}`
   );
 
-  // Use a ref to store message timestamps without causing re-renders
   const timestampsRef = useRef([]);
 
   useEffect(() => {
     if (message) {
       const currentTime = Date.now();
-      // Update timestamps
       timestampsRef.current = [...timestampsRef.current, currentTime].slice(
         -frequencyWindow
       );
 
-      // Calculate frequency
       if (timestampsRef.current.length >= 2) {
         const timeDifferences = timestampsRef.current
           .slice(1)
           .map((time, index) => time - timestampsRef.current[index]);
         const averageInterval =
           timeDifferences.reduce((a, b) => a + b, 0) / timeDifferences.length;
-        const calculatedFrequency = 1000 / averageInterval; // Convert ms to Hz
-        setFrequency(calculatedFrequency.toFixed(2)); // Round to 2 decimal places
+        const calculatedFrequency = 1000 / averageInterval;
+        setFrequency(calculatedFrequency.toFixed(2));
       }
 
-      // Parse and update data
       const dataEntry = topicConfig.parser(message);
       setData((prevData) => [...prevData.slice(-maxDataPoints + 1), dataEntry]);
     }
   }, [message, topicConfig]);
 
-  // Handler to toggle line visibility
   const handleLegendClick = (dataKey) => {
     setActiveLines((prevActiveLines) => {
       const newState = {
@@ -71,7 +63,6 @@ const GraphCard = ({ topicConfig }) => {
     });
   };
 
-  // Custom Legend Renderer
   const renderCustomLegend = (props) => {
     const { payload } = props;
 
@@ -107,40 +98,47 @@ const GraphCard = ({ topicConfig }) => {
     topicConfig,
   ]);
 
-  if (data.length === 0) return null;
-
   return (
-    <div key={topicConfig.name} className="graph-card">
-      <div className="graph-header">
+    <div
+      key={topicConfig.name}
+      className={`graph-card ${graphVisible ? "visible" : "hidden"}`}
+    >
+      <div
+        className="graph-header"
+        onClick={() => toggleVisibility(topicConfig.name)}
+        style={{ cursor: "pointer" }}
+      >
         <h3>{topicConfig.name}</h3>
         <div className="frequency-display">
           {frequency > 0 ? `${frequency} Hz` : "Calculating..."}
         </div>
       </div>
-      <LineChart
-        width={500}
-        height={300}
-        data={data}
-        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" />
-        <YAxis />
-        <Tooltip />
-        <Legend content={memoizedRenderLegend} />;
-        {topicConfig.graphKeys.map((keyConfig) => (
-          <Line
-            key={keyConfig.key}
-            type="monotone"
-            dataKey={keyConfig.key}
-            stroke={keyConfig.stroke}
-            name={keyConfig.name}
-            dot={false}
-            isAnimationActive={false}
-            hide={!activeLines[keyConfig.key]} // Control visibility via 'hide'
-          />
-        ))}
-      </LineChart>
+      {graphVisible && (
+        <LineChart
+          width={500}
+          height={300}
+          data={data}
+          margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Legend content={memoizedRenderLegend} />
+          {topicConfig.graphKeys.map((keyConfig) => (
+            <Line
+              key={keyConfig.key}
+              type="monotone"
+              dataKey={keyConfig.key}
+              stroke={keyConfig.stroke}
+              name={keyConfig.name}
+              dot={false}
+              isAnimationActive={false}
+              hide={!activeLines[keyConfig.key]}
+            />
+          ))}
+        </LineChart>
+      )}
     </div>
   );
 };

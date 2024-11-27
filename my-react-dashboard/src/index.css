@@ -1,21 +1,34 @@
-.graph-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 20px;
-  padding: 20px;
+/* Ensure the entire page matches the dark mode */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #202123; /* Dark background matching the app */
+  color: #e9e9e9; /* Text color for accessibility */
+  font-family: Arial, sans-serif;
+  height: 100%;
+  width: 100%;
 }
 
-.graph-card {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-  text-align: center;
+/* Ensure the app container fills the viewport */
+#root {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #202123; /* Same as the main background color */
 }
 
-.graph-card h3 {
-  font-size: 16px;
-  color: #444;
-  margin-bottom: 10px;
+/* Media Query for Responsive Design */
+@media (max-width: 1200px) {
+  .realtime-graph-container {
+    flex-direction: column;
+  }
+
+  .hidden-graphs-sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #565869; /* Subtle border color for dark mode */
+    order: -1; /* Move sidebar above visible graphs */
+  }
 }

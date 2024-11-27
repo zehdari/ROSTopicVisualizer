@@ -1,11 +1,11 @@
 import React from "react";
 import RealtimeGraph from "./RealtimeGraph";
+import "./App.css";
 
 const App = () => {
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1>Robot Diagnostics Dashboard</h1>
-      <p>Monitoring real-time data from ROS 2 topics</p>
+    <div className="app-container">
+      <h1 className="app-header">Talos Diagnostics</h1>
       <RealtimeGraph />
     </div>
   );

@@ -1,55 +1,89 @@
-/* styles.css */
+/* Realtime Graph Container */
+.realtime-graph-container {
+  display: flex;
+  flex-direction: row-reverse; /* Sidebar on the left */
+  height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
 
-.graph-container {
+/* Visible Graphs */
+.visible-graphs {
+  flex: 1;
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
   justify-content: center;
-  padding: 20px;
+  align-content: flex-start;
+  align-items: flex-start;
+  overflow-y: auto;
 }
 
+/* Hidden Graphs Sidebar */
+.hidden-graphs-sidebar {
+  width: 0px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  padding: 10px;
+  overflow-y: auto;
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.hidden-graphs-sidebar h4 {
+  margin-top: 0;
+  text-align: center;
+  color: var(--highlight-color);
+}
+
+/* Hidden Graph Item */
+.hidden-graph-item {
+  padding: 8px;
+  margin: 10px;
+  background-color: var(--card-bg);
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--text-color);
+  transition: background-color 0.3s;
+}
+
+.hidden-graph-item:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Graph Card */
 .graph-card {
-  position: relative; /* To position frequency display absolutely within */
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 15px; /* Increased padding for better spacing */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 10px;
+  padding: 10px;
+  box-shadow: 0 2px 5px var(--shadow-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
 }
 
+/* Graph Header */
 .graph-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-}
-
-.graph-card h3 {
-  margin: 0;
-  font-size: 1.1em;
+  gap: 20px;
+  color: var(--text-color);
 }
 
 .frequency-display {
   font-size: 0.9em;
-  color: #555;
-  background-color: #e0e0e0;
-  padding: 4px 8px;
-  border-radius: 4px;
+  color: var(--highlight-color);
 }
 
 .custom-legend {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap; /* Allows legends to wrap if too many */
-  margin-top: 10px;
-}
-
-.custom-legend span {
-  margin-right: 15px;
-  margin-bottom: 5px;
-  font-size: 0.9em;
-}
-
-.custom-legend span:last-child {
-  margin-right: 0;
+  flex-wrap: wrap;
+  justify-content: center; /* Center-align the legend items */
+  align-items: center; /* Align items vertically */
+  text-align: center;
+  gap: 10px; /* Optional: Add spacing between items */
+  margin-top: 10px; /* Optional: Add some spacing above the legend */
 }
