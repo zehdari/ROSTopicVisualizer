@@ -38,6 +38,7 @@
   text-align: left;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-color);
+  position: relative; /* Ensure proper positioning for the button */
 }
 
 .hidden-graph-item {
@@ -79,6 +80,17 @@
   word-break: break-all;
 }
 
+/* Show the add button when hovering over the row */
+.topics-table tr:hover .add-graph-btn {
+  display: inline-block; /* Make the button visible when the row is hovered */
+}
+
+/* Style the rows on hover */
+.topics-table tr:hover {
+  background-color: var(
+    --hover-bg
+  ); /* Add a background color to highlight the row */
+}
 /* Scrollbar styling to match theme (optional, can be removed if not needed) */
 .topics-table-wrapper::-webkit-scrollbar {
   width: 8px;
@@ -91,4 +103,46 @@
 .topics-table-wrapper::-webkit-scrollbar-thumb {
   background: var(--highlight-color);
   border-radius: 4px;
+}
+/* Initially hide the add button */
+.add-graph-btn {
+  display: none; /* Hide the button by default */
+}
+
+/* Show the add button when hovering over the row */
+.topics-table tr:hover .add-graph-btn {
+  display: inline-block; /* Make the button visible when the row is hovered */
+}
+
+/* Style the rows on hover */
+.topics-table tr:hover {
+  background-color: var(
+    --hover-bg
+  ); /* Add a background color to highlight the row */
+}
+/* Button styling to ensure it's properly aligned within the cell */
+.add-graph-btn {
+  position: absolute;
+  right: 10px; /* Adjust as needed */
+  top: 50%;
+  transform: translateY(-50%); /* Vertically center the button */
+  background-color: transparent;
+  color: var(--add-btn-color, white);
+  border: 0px solid var(--add-btn-border-color, #4caf50);
+  padding: 5px 10px;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.add-graph-btn:hover {
+  background-color: var(--add-btn-hover-bg, #45a049); /* Hover background */
+  border-color: var(--add-btn-hover-border-color, #45a049); /* Hover border */
+  color: var(--add-btn-hover-color, #fff); /* Text color on hover */
+}
+
+.add-graph-btn:focus {
+  outline: none;
 }

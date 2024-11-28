@@ -1,4 +1,3 @@
-// GraphCard.jsx
 import React, { useEffect, useState, useRef } from "react";
 import {
   LineChart,
@@ -11,18 +10,20 @@ import {
 } from "recharts";
 import { useRosTopic } from "./useRosTopic";
 
-const maxDataPoints = 50; // Limit the number of points displayed on the graph
-const frequencyWindow = 5; // Number of recent messages to calculate frequency
+const maxDataPoints = 50;
+const frequencyWindow = 5;
+const frequencyTimeout = 5000;
 
-const GraphCard = ({ topicConfig, graphVisible, toggleVisibility }) => {
+const GraphCard = ({ topicConfig, onRemoveGraph }) => {
   const [data, setData] = useState([]);
   const [frequency, setFrequency] = useState(0);
   const [activeLines, setActiveLines] = useState(
     topicConfig.graphKeys.reduce((acc, key) => {
-      acc[key.key] = true; // Initialize all lines as active
+      acc[key.key] = true;
       return acc;
     }, {})
   );
+  const [isHovering, setIsHovering] = useState(false);
 
   const message = useRosTopic(
     topicConfig.name,
@@ -30,10 +31,13 @@ const GraphCard = ({ topicConfig, graphVisible, toggleVisibility }) => {
   );
 
   const timestampsRef = useRef([]);
+  const lastMessageTimeRef = useRef(Date.now());
 
   useEffect(() => {
+    const currentTime = Date.now();
+
     if (message) {
-      const currentTime = Date.now();
+      lastMessageTimeRef.current = currentTime;
       timestampsRef.current = [...timestampsRef.current, currentTime].slice(
         -frequencyWindow
       );
@@ -52,6 +56,17 @@ const GraphCard = ({ topicConfig, graphVisible, toggleVisibility }) => {
       setData((prevData) => [...prevData.slice(-maxDataPoints + 1), dataEntry]);
     }
   }, [message, topicConfig]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const currentTime = Date.now();
+      if (currentTime - lastMessageTimeRef.current > frequencyTimeout) {
+        setFrequency(0);
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handleLegendClick = (dataKey) => {
     setActiveLines((prevActiveLines) => {
@@ -98,47 +113,137 @@ const GraphCard = ({ topicConfig, graphVisible, toggleVisibility }) => {
     topicConfig,
   ]);
 
+  // Custom Tooltip formatter to round values
+  // Custom Tooltip formatter to round values and match graph card styles
+  const customTooltip = ({ payload, label }) => {
+    if (!payload || payload.length === 0) return null;
+
+    return (
+      <div className="custom-tooltip">
+        <p className="tooltip-time">{`Time: ${label}`}</p>
+        {payload.map((entry) => {
+          const { dataKey, value, stroke, name } = entry;
+          // Round the value to 6 decimal places
+          const roundedValue = value ? value.toFixed(6) : "N/A";
+          return (
+            <p
+              key={dataKey}
+              className="tooltip-entry"
+              style={{ color: stroke }}
+            >
+              <strong>{name}:</strong> {roundedValue}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div
       key={topicConfig.name}
-      className={`graph-card ${graphVisible ? "visible" : "hidden"}`}
+      className="graph-card"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      style={{ position: "relative" }}
     >
-      <div
-        className="graph-header"
-        onClick={() => toggleVisibility(topicConfig.name)}
-        style={{ cursor: "pointer" }}
-      >
+      {isHovering && (
+        <button
+          onClick={() => onRemoveGraph(topicConfig.name)}
+          className="remove-graph-btn"
+          style={{
+            position: "absolute",
+            top: "5px",
+            right: "5px",
+          }}
+        >
+          ✕
+        </button>
+      )}
+      <div className="graph-header">
         <h3>{topicConfig.name}</h3>
         <div className="frequency-display">
-          {frequency > 0 ? `${frequency} Hz` : "Calculating..."}
+          {frequency > 0 ? `${frequency} Hz` : "0 Hz"}
         </div>
       </div>
-      {graphVisible && (
-        <LineChart
-          width={500}
-          height={300}
-          data={data}
-          margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+      <LineChart
+        width={500}
+        height={300}
+        data={data}
+        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="time" />
+        <YAxis />
+        <Tooltip content={customTooltip} />
+        <Legend content={memoizedRenderLegend} />
+        {topicConfig.graphKeys.map((keyConfig) => (
+          <Line
+            key={`${topicConfig.name}-${keyConfig.key}`}
+            type="monotone"
+            dataKey={keyConfig.key}
+            stroke={keyConfig.stroke}
+            name={keyConfig.name}
+            dot={false}
+            isAnimationActive={false}
+            hide={!activeLines[keyConfig.key]}
+          />
+        ))}
+      </LineChart>
+    </div>
+  );
+
+  return (
+    <div
+      key={topicConfig.name}
+      className="graph-card"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      style={{ position: "relative" }}
+    >
+      {isHovering && (
+        <button
+          onClick={() => onRemoveGraph(topicConfig.name)}
+          className="remove-graph-btn"
+          style={{
+            position: "absolute",
+            top: "5px",
+            right: "5px",
+          }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="time" />
-          <YAxis />
-          <Tooltip />
-          <Legend content={memoizedRenderLegend} />
-          {topicConfig.graphKeys.map((keyConfig) => (
-            <Line
-              key={keyConfig.key}
-              type="monotone"
-              dataKey={keyConfig.key}
-              stroke={keyConfig.stroke}
-              name={keyConfig.name}
-              dot={false}
-              isAnimationActive={false}
-              hide={!activeLines[keyConfig.key]}
-            />
-          ))}
-        </LineChart>
+          ✕
+        </button>
       )}
+      <div className="graph-header">
+        <h3>{topicConfig.name}</h3>
+        <div className="frequency-display">
+          {frequency > 0 ? `${frequency} Hz` : "0 Hz"}
+        </div>
+      </div>
+      <LineChart
+        width={500}
+        height={300}
+        data={data}
+        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="time" />
+        <YAxis />
+        <Tooltip content={customTooltip} />
+        <Legend content={memoizedRenderLegend} />
+        {topicConfig.graphKeys.map((keyConfig) => (
+          <Line
+            key={`${topicConfig.name}-${keyConfig.key}`}
+            type="monotone"
+            dataKey={keyConfig.key}
+            stroke={keyConfig.stroke}
+            name={keyConfig.name}
+            dot={false}
+            isAnimationActive={false}
+            hide={!activeLines[keyConfig.key]}
+          />
+        ))}
+      </LineChart>
     </div>
   );
 };
