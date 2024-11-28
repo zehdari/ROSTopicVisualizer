@@ -4,17 +4,18 @@
   justify-content: flex-start; /* Align the table to the top */
   align-items: center; /* Center the table horizontally */
   width: 100%;
-  height: 100%;
   padding: 0 10px;
+  padding-bottom: 200px;
   box-sizing: border-box;
   margin: 0 auto;
-  overflow: hidden;
+  /* Remove the overflow setting here */
 }
 
 .topics-table-wrapper {
   width: 100%; /* Ensure wrapper takes up full width */
-  overflow-y: auto; /* Enable vertical scrolling */
-  overflow-x: auto; /* Allow horizontal scrolling if necessary */
+  /* Remove the scroll behavior to let the page expand naturally */
+  /* overflow-y: auto; */
+  /* overflow-x: auto; */
   display: flex;
   justify-content: center; /* Center the table horizontally within the wrapper */
 }
@@ -78,7 +79,7 @@
   word-break: break-all;
 }
 
-/* Scrollbar styling to match theme */
+/* Scrollbar styling to match theme (optional, can be removed if not needed) */
 .topics-table-wrapper::-webkit-scrollbar {
   width: 8px;
 }

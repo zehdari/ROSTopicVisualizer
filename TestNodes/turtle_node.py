@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
-from example_interfaces.srv import Trigger
+from std_srvs.srv import Trigger
 
 class TurtleNode(Node):
     def __init__(self):
@@ -16,7 +16,7 @@ class TurtleNode(Node):
         self.declare_parameter('linear_speed', 2.0)
         self.declare_parameter('angular_speed', 1.0)
 
-        self.reset_speed_service = self.create_service(Trigger, 'reset_speed', self.reset_speed_callback)
+        self.reset_speed_service = self.create_service(Trigger, '/turtle_node/reset_speed', self.reset_speed_callback)
 
         self.enabled = False
         self.get_logger().info("Turtle Node started!")

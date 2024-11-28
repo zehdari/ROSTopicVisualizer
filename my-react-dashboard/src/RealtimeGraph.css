@@ -6,7 +6,7 @@
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
   flex: 1 1 auto; /* Allow it to grow and shrink based on content */
-  margin-bottom: 20px; /* Optional: Add spacing below if needed */
+  margin-bottom: 50px; /* Optional: Add spacing below if needed */
 }
 
 /* Visible Graphs */

@@ -1,14 +1,16 @@
+// TopicsTable.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service, Topic } from "roslib";
 import "./TopicsTable.css";
+import SearchBar from "./SearchBar"; // Import the new SearchBar component
 
 const TopicsTable = () => {
   const [topics, setTopics] = useState([]);
   const [openTopics, setOpenTopics] = useState({});
   const [ros, setRos] = useState(null);
-  const [subscribedTopics, setSubscribedTopics] = useState({}); // Track active subscriptions
-  const topicSubscriptions = useRef({}); // Ref to track active subscriptions
+  const [filter, setFilter] = useState(""); // State for storing the search filter
 
+  const topicSubscriptions = useRef({});
   const ignoredTopics = [
     "/rosout",
     "/client_count",
@@ -97,7 +99,6 @@ const TopicsTable = () => {
   }, []);
 
   const subscribeToTopic = (topic) => {
-    // Prevent subscribing to the same topic twice
     if (topicSubscriptions.current[topic.name]) return;
 
     const topicInstance = new Topic({
@@ -116,7 +117,6 @@ const TopicsTable = () => {
       }));
     });
 
-    // Save the subscription in the ref
     topicSubscriptions.current[topic.name] = topicInstance;
   };
 
@@ -126,7 +126,6 @@ const TopicsTable = () => {
     const topicInstance = topicSubscriptions.current[topicName];
     topicInstance.unsubscribe();
 
-    // Remove the subscription from the ref
     delete topicSubscriptions.current[topicName];
   };
 
@@ -134,11 +133,9 @@ const TopicsTable = () => {
     setOpenTopics((prev) => {
       const isOpen = prev[topicName];
       if (!isOpen) {
-        // Subscribe to the topic if it's not already subscribed
         const topic = topics.find((t) => t.name === topicName);
         subscribeToTopic(topic);
       } else {
-        // Unsubscribe from the topic if it's already open
         unsubscribeFromTopic(topicName);
       }
 
@@ -149,12 +146,18 @@ const TopicsTable = () => {
     });
   };
 
+  // Filter topics based on the search term
+  const filteredTopics = topics.filter((topic) =>
+    topic.name.toLowerCase().includes(filter)
+  );
+
   return (
     <div className="topics-table-container">
+      <SearchBar setFilter={setFilter} /> {/* Use the SearchBar component */}
       <div className="topics-table-wrapper">
         <table className="graph-card topics-table">
           <tbody>
-            {topics.map((topic, index) => (
+            {filteredTopics.map((topic, index) => (
               <React.Fragment key={index}>
                 <tr
                   className="hidden-graph-item"
