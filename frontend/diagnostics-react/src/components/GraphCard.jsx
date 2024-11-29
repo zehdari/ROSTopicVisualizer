@@ -7,6 +7,7 @@ import {
   Tooltip,
   CartesianGrid,
   Legend,
+  ResponsiveContainer,
 } from "recharts";
 import { useRosTopic } from "../utils/useRosTopic";
 import { FaCog, FaSave, FaTimes } from "react-icons/fa"; // Importing icons
@@ -24,7 +25,6 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
       return acc;
     }, {})
   );
-  const [isHovering, setIsHovering] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [maxDataPoints, setMaxDataPoints] = useState(50);
   const [inputMaxDataPoints, setInputMaxDataPoints] = useState(maxDataPoints);
@@ -159,55 +159,55 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {isHovering && (
-        <div className="graph-card-buttons">
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="settings-graph-btn"
-            title="Settings"
-          >
-            <FaCog />
-          </button>
-          <button
-            onClick={() => onRemoveGraph(topicConfig.name)}
-            className="remove-graph-btn"
-            title="Remove Graph"
-          >
-            <FaTimes />
-          </button>
-        </div>
-      )}
+      <div className="graph-card-buttons">
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="settings-graph-btn"
+          title="Settings"
+        >
+          <FaCog />
+        </button>
+        <button
+          onClick={() => onRemoveGraph(topicConfig.name)}
+          className="remove-graph-btn"
+          title="Remove Graph"
+        >
+          <FaTimes />
+        </button>
+      </div>
+
       <div className="graph-header">
         <h3>{topicConfig.name}</h3>
         <div className="frequency-display">
           {frequency > 0 ? `${frequency} Hz` : "0 Hz"}
         </div>
       </div>
-      <LineChart
-        width={500}
-        height={300}
-        data={data}
-        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" />
-        <YAxis />
-        <Tooltip content={customTooltip} />
-        <Legend content={memoizedRenderLegend} />
-        {topicConfig.graphKeys.map((keyConfig) => (
-          <Line
-            key={`${topicConfig.name}-${keyConfig.key}`}
-            type="monotone"
-            dataKey={keyConfig.key}
-            stroke={keyConfig.stroke}
-            name={keyConfig.name}
-            dot={false}
-            isAnimationActive={false}
-            hide={!activeLines[keyConfig.key]}
-          />
-        ))}
-      </LineChart>
-
+      <div style={{ width: "100%", maxWidth: "450px", height: "300px" }}>
+        <ResponsiveContainer>
+          <LineChart
+            data={data}
+            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis />
+            <Tooltip content={customTooltip} />
+            <Legend content={memoizedRenderLegend} />
+            {topicConfig.graphKeys.map((keyConfig) => (
+              <Line
+                key={`${topicConfig.name}-${keyConfig.key}`}
+                type="monotone"
+                dataKey={keyConfig.key}
+                stroke={keyConfig.stroke}
+                name={keyConfig.name}
+                dot={false}
+                isAnimationActive={false}
+                hide={!activeLines[keyConfig.key]}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
       {isSettingsOpen && (
         <div className="settings-modal">
           <div className="settings-modal-content">

@@ -4,7 +4,6 @@ import ClipLoader from "react-spinners/ClipLoader";
 import "../styles/ParamPanel.css";
 
 const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
-  const [nodes, setNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState(initialSelectedNode);
   const [nodeParams, setNodeParams] = useState([]);
   const [paramValues, setParamValues] = useState({});
@@ -24,7 +23,7 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
   useEffect(() => {
     if (!externalRos) {
       const newRos = new Ros({
-        url: "ws://localhost:9090",
+        url: "ws://192.168.1.19:9090",
       });
 
       newRos.on("connection", () => {
@@ -47,8 +46,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
                 !node.startsWith("/master") &&
                 !node.startsWith("/rosapi")
             );
-
-            setNodes(filteredNodes);
 
             // If an initial node was provided and it's in the list, select it
             if (

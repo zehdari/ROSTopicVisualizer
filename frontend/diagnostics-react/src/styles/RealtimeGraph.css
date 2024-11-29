@@ -41,17 +41,30 @@
 .hidden-graph-item:hover {
   background-color: var(--hover-bg);
 }
-
 .graph-card {
+  position: relative;
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  margin: 10px;
+  margin: 5px;
   padding: 10px;
   box-shadow: 0 2px 5px var(--shadow-color);
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
-  position: relative; /* Ensure positioning context for absolute elements */
+  width: 100%; /* Allow it to scale */
+  max-width: 475px; /* Set maximum width */
+  box-sizing: border-box; /* Ensure padding is included in the width */
+}
+
+.graph-card > div {
+  width: 100%; /* Use full width of the parent */
+  height: auto; /* Maintain aspect ratio */
+}
+
+.recharts-wrapper {
+  max-width: 100%; /* Constrain to parent width */
+  height: 300px; /* Fixed maximum height */
+  box-sizing: border-box; /* Include padding/borders in dimensions */
 }
 
 .graph-header {
@@ -77,29 +90,39 @@
   margin-top: 10px;
 }
 
-/* Button Container */
 .graph-card-buttons {
   position: absolute;
   top: 5px;
   right: 5px;
+  justify-content: right;
+  align-items: right;
   display: flex;
   gap: 10px;
-  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.graph-card:hover .graph-card-buttons {
+  opacity: 1; /* Show on hover */
 }
 
 /* Remove Button */
 .remove-graph-btn {
   background-color: transparent;
-  color: var(--remove-btn-color, var(--text-color));
-  border: 1px solid var(--remove-btn-border-color, var(--border-color));
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--settings-btn-color, var(--text-color));
+  border: 1px solid var(--settings-btn-border-color, var(--border-color));
+  border-radius: 50%; /* Keep button circular */
+  width: 24px; /* Adjust as needed */
+  height: 24px; /* Adjust as needed */
+  display: inline-flex; /* Inline flex to avoid layout issues */
+  align-items: center; /* Center icon vertically */
+  justify-content: center; /* Center icon horizontally */
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  overflow: visible; /* Ensure child icon is not clipped */
+  font-size: 16px; /* Explicit font size for consistent SVG scaling */
+  box-sizing: border-box;
+  padding: 0; /* Avoid extra padding affecting size */
 }
 
 .remove-graph-btn:hover {
@@ -112,19 +135,29 @@
   outline: none;
 }
 
-/* Settings Button */
 .settings-graph-btn {
   background-color: transparent;
   color: var(--settings-btn-color, var(--text-color));
   border: 1px solid var(--settings-btn-border-color, var(--border-color));
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 50%; /* Keep button circular */
+  width: 24px; /* Adjust as needed */
+  height: 24px; /* Adjust as needed */
+  display: inline-flex; /* Inline flex to avoid layout issues */
+  align-items: center; /* Center icon vertically */
+  justify-content: center; /* Center icon horizontally */
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  overflow: visible; /* Ensure child icon is not clipped */
+  font-size: 16px; /* Explicit font size for consistent SVG scaling */
+  box-sizing: border-box;
+  padding: 0; /* Avoid extra padding affecting size */
+}
+
+.settings-graph-btn svg,
+.remove-graph-btn svg {
+  max-width: 100%; /* Fit within button */
+  max-height: 100%; /* Fit within button */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .settings-graph-btn:hover {
@@ -248,6 +281,17 @@
 }
 
 /* Existing styles... */
+.visible-graphs {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  align-items: flex-start;
+  padding: 5px;
+}
+
+/* Optional: Maintain Padding and Centering */
 .realtime-graph-container {
   display: flex;
   flex-direction: row-reverse;
@@ -256,16 +300,7 @@
   transition: background-color 0.3s, color 0.3s;
   flex: 1 1 auto;
   margin-bottom: 50px;
-}
-
-.visible-graphs {
-  flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-content: flex-start;
-  align-items: flex-start;
-  padding: 10px;
+  justify-content: center; /* Ensure graphs are centered */
 }
 
 .hidden-graphs-sidebar {

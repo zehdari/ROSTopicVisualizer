@@ -7,7 +7,7 @@ let ros;
 // Initialize rosbridge connection if it's not already connected
 if (!ros) {
   ros = new Ros({
-    url: "ws://localhost:9090", // Update with your ROS bridge URL
+    url: "ws://192.168.1.19:9090", // Update with your ROS bridge URL
   });
 
   ros.on("error", (error) => {

@@ -34,7 +34,7 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
     }
 
     const newRos = new Ros({
-      url: "ws://localhost:9090",
+      url: "ws://192.168.1.19:9090",
     });
 
     newRos.on("connection", () => {
@@ -356,7 +356,7 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
         <div className="loading-indicator">Loading topics...</div>
       ) : (
         <div className="topics-table-wrapper">
-          <table className="graph-card topics-table">
+          <table className="topics-card topics-table">
             <tbody>
               {Object.entries(groupedFilteredTopics).map(
                 ([node, topics], nodeIndex) => (
