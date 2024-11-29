@@ -2,8 +2,8 @@
 .search-bar {
   display: flex;
   justify-content: flex-start;
-  align-items: center;
-  width: 50%;
+  align-items: left;
+  width: 100%;
   position: relative; /* Needed for positioning the clear button */
 }
 

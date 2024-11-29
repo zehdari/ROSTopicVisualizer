@@ -11,11 +11,17 @@ const App = () => {
   return (
     <div className="app-container">
       <h1 className="app-header">Talos Diagnostics</h1>
+
       <RealtimeGraph
         visibleTopics={visibleTopics}
         updateVisibleTopics={updateVisibleTopics}
       />
-      <TopicsTable onAddGraph={handleAddGraph} visibleTopics={visibleTopics} />
+      <div class="main-container">
+        <TopicsTable
+          onAddGraph={handleAddGraph}
+          visibleTopics={visibleTopics}
+        />
+      </div>
     </div>
   );
 };

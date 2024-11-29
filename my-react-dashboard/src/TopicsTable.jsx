@@ -1,19 +1,38 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service, Topic } from "roslib";
 import "./TopicsTable.css";
+import { RefreshCcw } from "lucide-react";
 import SearchBar from "./SearchBar";
-import { TOPICS_CONFIG } from "./topicsConfig"; // Import the existing topics configuration
-import { IGNORED_TOPICS } from "./topicsConfig"; // Import ignored topics
+import ParamPanel from "./ParamPanel";
+import { TOPICS_CONFIG, IGNORED_TOPICS } from "./topicsConfig";
 
 const TopicsTable = ({ onAddGraph, visibleTopics }) => {
-  const [topics, setTopics] = useState([]);
+  const [topicsByNode, setTopicsByNode] = useState({});
   const [openTopics, setOpenTopics] = useState({});
+  const [selectedNode, setSelectedNode] = useState("");
   const [ros, setRos] = useState(null);
   const [filter, setFilter] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const topicSubscriptions = useRef({});
+  const rosRef = useRef(null);
 
-  useEffect(() => {
+  const fetchTopicsAndNodes = () => {
+    setLoading(true);
+    // Clear existing subscriptions
+    Object.values(topicSubscriptions.current).forEach(
+      ({ topicInstance, frequencyInterval }) => {
+        topicInstance.unsubscribe();
+        clearInterval(frequencyInterval);
+      }
+    );
+    topicSubscriptions.current = {};
+    setOpenTopics({});
+
+    if (rosRef.current) {
+      rosRef.current.close();
+    }
+
     const newRos = new Ros({
       url: "ws://localhost:9090",
     });
@@ -21,11 +40,17 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
     newRos.on("connection", () => {
       console.log("Connected to ROS websocket");
 
-      // Create service clients
-      const topicListService = new Service({
+      // Create service clients for rosapi/nodes and rosapi/node_details
+      const nodesService = new Service({
         ros: newRos,
-        name: "/rosapi/topics",
-        serviceType: "rosapi/Topics",
+        name: "/rosapi/nodes",
+        serviceType: "rosapi/Nodes",
+      });
+
+      const nodeDetailsService = new Service({
+        ros: newRos,
+        name: "/rosapi/node_details",
+        serviceType: "rosapi/NodeDetails",
       });
 
       const topicTypeService = new Service({
@@ -34,63 +59,142 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
         serviceType: "rosapi/TopicType",
       });
 
-      const request = {};
-      topicListService.callService(
-        request,
-        (response) => {
-          // Filter topics based on IGNORED_TOPICS array
-          const filteredTopics = response.topics.filter(
-            (topicName) => !IGNORED_TOPICS.includes(topicName)
-          );
+      // Fetch the list of nodes
+      nodesService.callService(
+        {},
+        (nodesResponse) => {
+          const nodeNames = nodesResponse.nodes;
+          console.log("Fetched Nodes:", nodeNames);
 
-          const topicDetailsPromises = filteredTopics.map((topicName) => {
+          // For each node, fetch its details
+          const nodeDetailsPromises = nodeNames.map((nodeName) => {
             return new Promise((resolve) => {
-              const typeRequest = { topic: topicName };
-              topicTypeService.callService(
-                typeRequest,
-                (typeResponse) => {
+              nodeDetailsService.callService(
+                { node: nodeName },
+                (detailsResponse) => {
                   resolve({
-                    name: topicName,
-                    type: typeResponse.type,
+                    node: nodeName,
+                    publishing: detailsResponse.publishing,
+                    subscribing: detailsResponse.subscribing,
+                    services: detailsResponse.services,
                   });
                 },
                 (error) => {
-                  console.error(`Error getting type for ${topicName}:`, error);
-                  resolve({
-                    name: topicName,
-                    type: "Unknown",
-                  });
+                  console.error(
+                    `Error fetching details for node ${nodeName}:`,
+                    error
+                  );
+                  resolve(null); // Resolve with null on error
                 }
               );
             });
           });
 
-          Promise.all(topicDetailsPromises).then((resolvedTopics) => {
-            const sortedTopics = resolvedTopics.sort((a, b) => {
-              const namespaceA = a.name.split("/").slice(0, -1).join("/");
-              const namespaceB = b.name.split("/").slice(0, -1).join("/");
-              return namespaceA.localeCompare(namespaceB);
-            });
+          Promise.all(nodeDetailsPromises).then((nodesDetails) => {
+            // Filter out any null responses due to errors
+            const validNodesDetails = nodesDetails.filter(
+              (detail) => detail !== null
+            );
 
-            setTopics(sortedTopics);
+            // Collect all unique publishing topics
+            const allPublishingTopics = validNodesDetails
+              .flatMap((node) => node.publishing)
+              .filter((topic) => !IGNORED_TOPICS.includes(topic));
+
+            // Remove duplicate topics
+            const uniquePublishingTopics = Array.from(
+              new Set(allPublishingTopics)
+            );
+            console.log("Unique Publishing Topics:", uniquePublishingTopics);
+
+            // Fetch topic types
+            const topicTypePromises = uniquePublishingTopics.map(
+              (topicName) => {
+                return new Promise((resolve) => {
+                  topicTypeService.callService(
+                    { topic: topicName },
+                    (typeResponse) => {
+                      resolve({
+                        name: topicName,
+                        type: typeResponse.type,
+                      });
+                    },
+                    (error) => {
+                      console.error(
+                        `Error getting type for ${topicName}:`,
+                        error
+                      );
+                      resolve({
+                        name: topicName,
+                        type: "Unknown",
+                      });
+                    }
+                  );
+                });
+              }
+            );
+
+            Promise.all(topicTypePromises).then((topicsWithTypes) => {
+              // Create a map for quick lookup of topic types
+              const topicTypeMap = topicsWithTypes.reduce((acc, topic) => {
+                acc[topic.name] = topic.type;
+                return acc;
+              }, {});
+              console.log("Topic Type Map:", topicTypeMap);
+
+              // Group topics by node based on publishing topics
+              const grouped = validNodesDetails.reduce((acc, nodeDetail) => {
+                const publishingTopics = nodeDetail.publishing
+                  .filter((topic) => !IGNORED_TOPICS.includes(topic))
+                  .map((topic) => ({
+                    name: topic,
+                    type: topicTypeMap[topic] || "Unknown",
+                  }));
+
+                if (publishingTopics.length > 0) {
+                  acc[nodeDetail.node] = publishingTopics;
+                }
+
+                return acc;
+              }, {});
+
+              console.log("Grouped Topics by Node:", grouped);
+
+              setTopicsByNode(grouped);
+              setLoading(false);
+            });
           });
         },
         (error) => {
-          console.error("Error fetching topics:", error);
+          console.error("Error fetching nodes:", error);
+          setLoading(false);
         }
       );
 
+      rosRef.current = newRos;
       setRos(newRos);
     });
 
     newRos.on("error", (error) => {
       console.error("ROS connection error:", error);
+      setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchTopicsAndNodes();
 
     return () => {
-      if (newRos) {
-        newRos.close();
+      if (rosRef.current) {
+        rosRef.current.close();
       }
+      // Clean up subscriptions
+      Object.values(topicSubscriptions.current).forEach(
+        ({ topicInstance, frequencyInterval }) => {
+          topicInstance.unsubscribe();
+          clearInterval(frequencyInterval);
+        }
+      );
     };
   }, []);
 
@@ -168,8 +272,15 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
     setOpenTopics((prev) => {
       const isOpen = prev[topicName];
       if (!isOpen) {
-        const topic = topics.find((t) => t.name === topicName);
-        subscribeToTopic(topic);
+        const nodeEntries = Object.entries(topicsByNode);
+        let topic;
+        for (const [, topics] of nodeEntries) {
+          topic = topics.find((t) => t.name === topicName);
+          if (topic) break;
+        }
+        if (topic) {
+          subscribeToTopic(topic);
+        }
       } else {
         unsubscribeFromTopic(topicName);
       }
@@ -197,90 +308,155 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
     onAddGraph(existingTopicConfig);
   };
 
-  // Filter topics based on the search term
-  const filteredTopics = topics.filter((topic) =>
-    topic.name.toLowerCase().includes(filter.toLowerCase())
+  const toggleNodeDetails = (node) => {
+    // If clicking the same node, deselect it
+    setSelectedNode((prevNode) => (prevNode === node ? "" : node));
+  };
+
+  // Enhanced Filtering: Filter topics and nodes based on the search term
+  const groupedFilteredTopics = Object.entries(topicsByNode).reduce(
+    (acc, [node, topics]) => {
+      const lowerCaseFilter = filter.toLowerCase();
+      const nodeMatches = node.toLowerCase().includes(lowerCaseFilter);
+
+      if (nodeMatches) {
+        // If node name matches, include all its topics
+        acc[node] = topics;
+      } else {
+        // Otherwise, filter topics within the node
+        const filteredTopics = topics.filter((topic) =>
+          topic.name.toLowerCase().includes(lowerCaseFilter)
+        );
+        if (filteredTopics.length > 0) {
+          acc[node] = filteredTopics;
+        }
+      }
+
+      return acc;
+    },
+    {}
   );
 
   return (
     <div className="topics-table-container">
-      <SearchBar setFilter={setFilter} />
-      <div className="topics-table-wrapper">
-        <table className="graph-card topics-table">
-          <tbody>
-            {filteredTopics.map((topic, index) => {
-              // Check if the topic is in the configuration
-              const isConfigured = TOPICS_CONFIG.some(
-                (configTopic) => configTopic.name === topic.name
-              );
-
-              return (
-                <React.Fragment key={index}>
-                  <tr
-                    className="hidden-graph-item"
-                    onClick={() => toggleTopicDetails(topic.name)}
-                  >
-                    <td className="topic-name">{topic.name}</td>
-                    <td>{topic.type}</td>
-                    <td>
-                      {isConfigured &&
-                        !visibleTopics.some(
-                          (visibleTopic) => visibleTopic.name === topic.name
-                        ) && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent row click event
-                              handleAddGraph(topic);
-                            }}
-                            className="add-graph-btn"
-                          >
-                            +
-                          </button>
-                        )}
-                    </td>
-                  </tr>
-                  {openTopics[topic.name] && (
-                    <TopicDetailsView
-                      topic={topic}
-                      latestMessage={openTopics[topic.name]?.latestMessage}
-                      frequency={openTopics[topic.name]?.frequency}
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="search-and-refresh-container">
+        <div className="search-bar-wrapper">
+          <SearchBar setFilter={setFilter} />
+        </div>
+        <button
+          onClick={fetchTopicsAndNodes}
+          className="refresh-topics-btn"
+          disabled={loading}
+          aria-label="Refresh topics"
+        >
+          <RefreshCcw size={16} className="refresh-icon" />
+        </button>
       </div>
+      {loading ? (
+        <div className="loading-indicator">Loading topics...</div>
+      ) : (
+        <div className="topics-table-wrapper">
+          <table className="graph-card topics-table">
+            <tbody>
+              {Object.entries(groupedFilteredTopics).map(
+                ([node, topics], nodeIndex) => (
+                  <React.Fragment key={`node-${nodeIndex}`}>
+                    {/* Node Row */}
+                    <tr
+                      className="node-row"
+                      onClick={() => toggleNodeDetails(node)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td colSpan="3">
+                        <strong>{node}</strong>
+                      </td>
+                    </tr>
+                    {selectedNode === node && (
+                      <tr className="param-panel-row">
+                        <td colSpan="3">
+                          <ParamPanel initialSelectedNode={node} ros={ros} />
+                        </td>
+                      </tr>
+                    )}
+                    {/* Topic Rows */}
+                    {topics.map((topic, topicIndex) => {
+                      // Check if the topic is in the configuration
+                      const isConfigured = TOPICS_CONFIG.some(
+                        (configTopic) => configTopic.name === topic.name
+                      );
+
+                      return (
+                        <React.Fragment key={`topic-${topicIndex}`}>
+                          <tr
+                            className="topic-row hidden-graph-item"
+                            onClick={() => toggleTopicDetails(topic.name)}
+                          >
+                            <td className="topic-name">{topic.name}</td>
+                            <td>{topic.type}</td>
+                            <td>
+                              {isConfigured &&
+                                !visibleTopics.some(
+                                  (visibleTopic) =>
+                                    visibleTopic.name === topic.name
+                                ) && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevent row click event
+                                      handleAddGraph(topic);
+                                    }}
+                                    className="add-graph-btn"
+                                  >
+                                    +
+                                  </button>
+                                )}
+                            </td>
+                          </tr>
+                          {openTopics[topic.name] && (
+                            <tr className="topic-details-row">
+                              <td colSpan="3">
+                                <div className="graph-card topic-details-content">
+                                  <p>
+                                    <strong>Type:</strong> {topic.type}
+                                  </p>
+                                  <p>
+                                    <strong>Frequency:</strong>{" "}
+                                    {openTopics[topic.name]?.frequency
+                                      ? `${openTopics[topic.name].frequency} Hz`
+                                      : "Calculating..."}
+                                  </p>
+                                  {openTopics[topic.name]?.latestMessage ? (
+                                    <>
+                                      <p>
+                                        <strong>Latest Message:</strong>
+                                      </p>
+                                      <pre>
+                                        {openTopics[topic.name].latestMessage}
+                                      </pre>
+                                    </>
+                                  ) : (
+                                    <p>Waiting for message...</p>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </React.Fragment>
+                )
+              )}
+              {Object.keys(groupedFilteredTopics).length === 0 && (
+                <tr>
+                  <td colSpan="3">No topics found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
-
-const TopicDetailsView = ({ topic, latestMessage, frequency }) => (
-  <tr className="topic-details-row">
-    <td colSpan="3">
-      <div className="graph-card topic-details-content">
-        <p>
-          <strong>Type:</strong> {topic.type}
-        </p>
-        <p>
-          <strong>Frequency:</strong>{" "}
-          {frequency ? `${frequency} Hz` : "Calculating..."}{" "}
-          {/* Show 0 Hz if no frequency */}
-        </p>
-        {latestMessage ? (
-          <>
-            <p>
-              <strong>Latest Message:</strong>
-            </p>
-            <pre>{latestMessage}</pre>
-          </>
-        ) : (
-          <p>Waiting for message...</p>
-        )}
-      </div>
-    </td>
-  </tr>
-);
 
 export default TopicsTable;

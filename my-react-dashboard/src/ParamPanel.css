@@ -1,0 +1,260 @@
+/* ParamPanel.css */
+
+/* Container for the entire parameter panel */
+.param-panel {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  padding: 20px 10px; /* Adjusted horizontal padding to 10px */
+  border: 1px solid var(--border-color);
+  border-radius: 12px; /* Matched border-radius with topics table */
+  box-shadow: 0 2px 5px var(--shadow-color);
+  transition: background-color 0.3s, color 0.3s;
+  width: 100%; /* Changed from max-width: 600px to width: 100% */
+  /* Alternatively, set max-width if the table container has a specific max-width */
+  /* max-width: 800px; */
+  margin: 20px auto;
+}
+/* Header styling */
+.param-panel h2 {
+  margin-bottom: 20px;
+  color: var(--text-color);
+  text-align: center;
+}
+
+/* Message container for errors and info messages */
+.message-container {
+  margin-bottom: 15px;
+}
+
+.error-message {
+  color: var(--error-color, #f44336);
+  background-color: var(--error-bg, #fdecea);
+  padding: 10px;
+  border: 1px solid var(--error-border, #f5c6cb);
+  border-radius: 4px;
+}
+
+.info-message {
+  color: var(--info-color, #bce8f1);
+  background-color: var(--card-bg);
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+/* Container for the node selection dropdown */
+.param-input-container {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Styling for the node selection dropdown */
+.node-select {
+  width: 100%;
+  max-width: 300px;
+  padding: 10px; /* Updated to match search bar padding */
+  font-size: 1em; /* Ensures consistent font size */
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg); /* Matches search bar background */
+  color: var(--text-color);
+  box-sizing: border-box;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.node-select:focus {
+  outline: none;
+  border-color: var(--highlight-color);
+  background-color: var(
+    --highlight-bg
+  ); /* Matches search bar focus background */
+}
+
+.node-select:hover {
+  background-color: var(--hover-bg); /* Matches search bar hover background */
+}
+
+/* Placeholder styling for select (if applicable) */
+/* Note: Placeholder styling for <select> elements is limited across browsers.
+     If you need custom placeholder behavior, consider using a library or custom component. */
+
+/* Container for parameter values */
+.param-values-container {
+  margin-bottom: 20px;
+}
+
+/* Container for the spinner */
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Each parameter item */
+.param-value-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Label for each parameter */
+.param-value-item strong {
+  flex: 0 0 150px;
+  color: var(--text-color);
+}
+
+/* Input fields for parameter values */
+.param-value-item input[type="checkbox"],
+.param-value-item input[type="number"],
+.param-value-item input[type="text"] {
+  flex: 1;
+  padding: 10px; /* Updated to match search bar padding */
+  font-size: 1em; /* Ensures consistent font size */
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg); /* Matches search bar background */
+  color: var(--text-color);
+  box-sizing: border-box;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.param-value-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  padding: 0; /* Remove padding to fit the checkbox tightly */
+}
+
+/* Focus states for input fields */
+.param-value-item input[type="number"]:focus,
+.param-value-item input[type="text"]:focus {
+  outline: none;
+  border-color: var(--highlight-color);
+  background-color: var(
+    --highlight-bg
+  ); /* Matches search bar focus background */
+}
+
+.param-value-item input[type="number"]::placeholder,
+.param-value-item input[type="text"]::placeholder {
+  color: var(--placeholder-color);
+  opacity: 0.7;
+}
+
+/* Hover states for input fields */
+.param-value-item input[type="number"]:hover,
+.param-value-item input[type="text"]:hover {
+  background-color: var(--hover-bg); /* Matches search bar hover background */
+}
+
+/* Styling for the Update Parameters button */
+.update-button-container {
+  display: flex;
+  justify-content: center;
+}
+
+.update-button-container button {
+  padding: 10px 20px;
+  background-color: var(--card-bg);
+  color: var(--button-text, #fff);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.update-button-container button:hover {
+  background-color: var(--hover-bg);
+}
+
+.update-button-container button:focus {
+  border-color: var(--highlight-color);
+}
+
+.param-panel,
+.param-panel * {
+  box-sizing: border-box;
+}
+
+/* Container for the custom checkbox */
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  margin-left: 10px; /* Adjust as needed */
+}
+
+/* Hide the native checkbox */
+.custom-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkmark/box */
+.custom-checkbox .checkmark {
+  width: 20px;
+  height: 20px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px; /* Adjust border-radius as needed */
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* On hover, change the background color */
+.custom-checkbox:hover .checkmark {
+  background-color: var(--hover-bg);
+}
+
+/* Add the checkmark icon */
+.custom-checkbox .checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.custom-checkbox input[type="checkbox"]:checked ~ .checkmark::after {
+  display: block;
+}
+
+/* Style the checkmark */
+.custom-checkbox .checkmark::after {
+  left: 7px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--button-text, #fff);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Focus state */
+.custom-checkbox input[type="checkbox"]:focus ~ .checkmark {
+  outline: none;
+  border-color: var(--highlight-color);
+}
+
+/* Chrome, Safari, Edge, Opera */
+.param-panel input[type="number"]::-webkit-inner-spin-button,
+.param-panel input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+.param-panel input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Optional: Remove arrows in IE and Edge Legacy */
+.param-panel input[type="number"] {
+  -ms-appearance: textfield;
+}

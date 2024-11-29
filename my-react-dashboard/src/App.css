@@ -30,3 +30,12 @@
   text-shadow: 1px 1px 4px var(--shadow-color);
   margin-bottom: 5px;
 }
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers child elements horizontally */
+  padding: 0 10px; /* Consistent horizontal padding */
+  max-width: 1200px; /* Example max-width */
+  margin: 0 auto; /* Center the container */
+}

@@ -1,3 +1,4 @@
+from rcl_interfaces.msg import SetParametersResult
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
@@ -8,20 +9,27 @@ import time
 class SineWavePublisher(Node):
     def __init__(self):
         super().__init__('sin_wave_publisher')
-        self.declare_parameter('topic_name', '/sin_wave')
-        self.declare_parameter('frequency', 1.0)  # Frequency of the sine wave in Hz
-        self.declare_parameter('amplitude', 1.0)  # Amplitude of the sine wave
-
-        self.topic_name = self.get_parameter('topic_name').get_parameter_value().string_value
+        
+        # Declare parameters
+        self.declare_parameter('frequency', 1.0)
+        self.declare_parameter('amplitude', 1.0)
+        
+        # Initialize parameter values
         self.frequency = self.get_parameter('frequency').get_parameter_value().double_value
         self.amplitude = self.get_parameter('amplitude').get_parameter_value().double_value
-
-        self.publisher_ = self.create_publisher(Float64, self.topic_name, 10)
+        
+        # Create publisher
+        self.publisher_ = self.create_publisher(Float64, "/sin_wave", 10)
+        
+        # Create a timer for periodic publishing
         self.timer = self.create_timer(1.0 / 30.0, self.publish_sine_wave)  # 30 Hz update rate
         self.start_time = time.time()
+        
+        # Add parameter change callback
+        self.add_on_set_parameters_callback(self.on_set_parameters)
 
         self.get_logger().info(
-            f"Sine wave publisher started on topic '{self.topic_name}' with "
+            f"Sine wave publisher started on topic '/sin_wave' with "
             f"frequency={self.frequency} Hz, amplitude={self.amplitude}."
         )
 
@@ -32,6 +40,17 @@ class SineWavePublisher(Node):
         msg.data = sine_value
         self.publisher_.publish(msg)
         self.get_logger().info(f"Published: {sine_value:.2f}")
+
+    def on_set_parameters(self, params):
+        # Update parameter values dynamically
+        for param in params:
+            if param.name == 'amplitude' and param.type_ == param.Type.DOUBLE:
+                self.amplitude = param.value
+                self.get_logger().info(f"Updated amplitude to: {self.amplitude}")
+            elif param.name == 'frequency' and param.type_ == param.Type.DOUBLE:
+                self.frequency = param.value
+                self.get_logger().info(f"Updated frequency to: {self.frequency}")
+        return SetParametersResult(successful=True)
 
 
 def main(args=None):

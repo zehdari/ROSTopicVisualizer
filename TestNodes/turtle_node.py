@@ -13,7 +13,7 @@ class TurtleNode(Node):
         self.subscription = self.create_subscription(Bool, 'turtle_enabled', self.enabled_callback, 10)
         self.timer = self.create_timer(1.0, self.publish_twist)
 
-        self.declare_parameter('linear_speed', 2.0)
+        self.declare_parameter('linear_speed', 2.1)
         self.declare_parameter('angular_speed', 1.0)
 
         self.reset_speed_service = self.create_service(Trigger, '/turtle_node/reset_speed', self.reset_speed_callback)
