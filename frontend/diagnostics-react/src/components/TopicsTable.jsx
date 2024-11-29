@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service, Topic } from "roslib";
-import "./TopicsTable.css";
+import "../styles/TopicsTable.css";
 import { RefreshCcw } from "lucide-react";
 import SearchBar from "./SearchBar";
 import ParamPanel from "./ParamPanel";
-import { TOPICS_CONFIG, IGNORED_TOPICS } from "./topicsConfig";
+import { TOPICS_CONFIG, IGNORED_TOPICS } from "../config/topicsConfig";
 
 const TopicsTable = ({ onAddGraph, visibleTopics }) => {
   const [topicsByNode, setTopicsByNode] = useState({});

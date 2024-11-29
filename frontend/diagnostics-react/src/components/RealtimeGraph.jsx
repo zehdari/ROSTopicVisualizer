@@ -1,6 +1,6 @@
 import React from "react";
 import GraphCard from "./GraphCard";
-import "./RealtimeGraph.css";
+import "../styles/RealtimeGraph.css";
 
 const RealtimeGraph = ({ visibleTopics, updateVisibleTopics }) => {
   const handleRemoveGraph = (topicName) => {

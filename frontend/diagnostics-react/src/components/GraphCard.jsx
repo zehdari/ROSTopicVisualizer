@@ -8,9 +8,9 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import { useRosTopic } from "./useRosTopic";
+import { useRosTopic } from "../utils/useRosTopic";
 import { FaCog, FaSave, FaTimes } from "react-icons/fa"; // Importing icons
-import "./RealtimeGraph.css"; // Assume you have corresponding CSS
+import "../styles/RealtimeGraph.css"; // Assume you have corresponding CSS
 
 const frequencyWindow = 5;
 const frequencyTimeout = 5000;

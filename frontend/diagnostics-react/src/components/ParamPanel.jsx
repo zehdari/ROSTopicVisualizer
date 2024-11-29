@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service } from "roslib";
 import ClipLoader from "react-spinners/ClipLoader";
-import "./ParamPanel.css";
+import "../styles/ParamPanel.css";
 
 const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
   const [nodes, setNodes] = useState([]);

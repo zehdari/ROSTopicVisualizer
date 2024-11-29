@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TOPICS_CONFIG } from "./topicsConfig";
+import { TOPICS_CONFIG } from "../config/topicsConfig";
 
 export const useVisibleTopics = () => {
   const [visibleTopics, setVisibleTopics] = useState(

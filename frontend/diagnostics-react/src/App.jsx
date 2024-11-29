@@ -1,8 +1,8 @@
 import React from "react";
-import RealtimeGraph from "./RealtimeGraph";
-import "./App.css";
-import TopicsTable from "./TopicsTable";
-import { useVisibleTopics } from "./useVisibleTopics"; // Import the custom hook
+import RealtimeGraph from "./components/RealtimeGraph";
+import "./styles/App.css";
+import TopicsTable from "./components/TopicsTable";
+import { useVisibleTopics } from "./utils/useVisibleTopics"; // Import the custom hook
 
 const App = () => {
   const { visibleTopics, handleAddGraph, updateVisibleTopics } =
