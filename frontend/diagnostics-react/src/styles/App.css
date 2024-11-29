@@ -1,0 +1,41 @@
+/* Base Theme Variables (Dark Mode by Default) */
+:root {
+  --bg-color: #202123; /* ChatGPT dark background */
+  --sidebar-bg: #343541; /* Sidebar background color */
+  --card-bg: #2b2d31; /* Graph card background color */
+  --text-color: #e9e9e9; /* Light gray text color */
+  --hover-bg: #3e3f4a; /* Hover background color */
+  --border-color: #565869; /* Subtle border color */
+  --shadow-color: rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+  --highlight-color: #90caf9; /* Accent color */
+}
+
+/* General Container Styles */
+.app-container {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: Arial, sans-serif;
+  text-align: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 5px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Header Styling */
+.app-header {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: var(--highlight-color);
+  text-shadow: 1px 1px 4px var(--shadow-color);
+  margin-bottom: 5px;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers child elements horizontally */
+  padding: 0 10px; /* Consistent horizontal padding */
+  max-width: 1200px; /* Example max-width */
+  margin: 0 auto; /* Center the container */
+}

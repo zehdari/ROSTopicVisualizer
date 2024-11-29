@@ -1,0 +1,234 @@
+/* Wrapper to center the table and allow flexibility */
+.topics-table-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex: 2; /* Takes up more space compared to ParamPanel */
+}
+
+/* Container for the entire topics table */
+.topics-table-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  padding: 0 10px;
+  padding-bottom: 20px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden; /* Ensure content is clipped to the border radius */
+}
+
+/* Adjusting table to take full width with rounded corners */
+.topics-table {
+  width: 100%;
+  table-layout: fixed;
+  max-width: 100%;
+  border-collapse: separate; /* Allows border-radius to work */
+  border-spacing: 0; /* Removes spacing between cells */
+  border-radius: 12px; /* Apply border-radius directly to the table */
+  overflow: hidden; /* Clip any overflowing content */
+}
+
+/* Table header styling */
+.topics-table thead th {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border-color);
+  color: var(--text-color);
+  background-color: var(--header-bg, #f9f9f9);
+}
+
+/* General table row styling */
+.topics-table tr {
+  z-index: 10;
+}
+
+/* General table cell styling */
+.topics-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+  position: relative; /* Ensure proper positioning for the button */
+  word-wrap: break-word; /* Prevent overflow of long text */
+}
+
+/* Styling for rows that can hide/show graph items */
+.hidden-graph-item {
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.hidden-graph-item:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Styling for the topic name */
+.topic-name {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* Styling for frequency display */
+.frequency-display {
+  text-align: right;
+  color: var(--highlight-color);
+  cursor: pointer;
+}
+
+/* Styling for the details row */
+.topic-details-row {
+  background-color: var(--card-bg);
+}
+
+/* Container for topic details content */
+.topic-details-content {
+  padding: 15px;
+  color: var(--text-color);
+}
+
+.topic-details-content pre {
+  background-color: var(--bg-color);
+  padding: 10px;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Show the add button when hovering over the row */
+.topics-table tr:hover .add-graph-btn {
+  display: inline-block; /* Make the button visible when the row is hovered */
+}
+
+/* Style the rows on hover */
+.topics-table tr:hover {
+  background-color: var(
+    --hover-bg
+  ); /* Add a background color to highlight the row */
+}
+
+/* Scrollbar styling to match theme (optional, can be removed if not needed) */
+.topics-table-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.topics-table-wrapper::-webkit-scrollbar-track {
+  background: var(--sidebar-bg);
+}
+
+.topics-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--highlight-color);
+  border-radius: 4px;
+}
+
+/* Initially hide the add button */
+.add-graph-btn {
+  display: none; /* Hide the button by default */
+}
+
+/* Button styling to ensure it's properly aligned within the cell */
+.add-graph-btn {
+  position: absolute;
+  right: 10px; /* Adjust as needed */
+  top: 50%;
+  transform: translateY(-50%); /* Vertically center the button */
+  background-color: transparent;
+  color: var(--add-btn-color, white);
+  border: 0px solid var(--add-btn-border-color, #4caf50);
+  padding: 5px 10px;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.add-graph-btn:hover {
+  background-color: var(--add-btn-hover-bg, #45a049); /* Hover background */
+  border-color: var(--add-btn-hover-border-color, #45a049); /* Hover border */
+  color: var(--add-btn-hover-color, #fff); /* Text color on hover */
+}
+
+.add-graph-btn:focus {
+  outline: none;
+}
+
+/* ========================= */
+/* New Styles for Topic Rows */
+/* ========================= */
+
+/* Styling for the node grouping row */
+.node-row {
+  background-color: var(--card-bg) !important;
+  font-weight: bold;
+  /* Optional: Add padding or other styles as needed */
+}
+
+/* Styling for topic rows to align with node rows */
+.topic-row {
+  background-color: var(--card-bg); /* Changed from var(--subtable-bg, #fff) */
+}
+
+/* Indentation for topic names to align with node styling */
+.topic-row .topic-name {
+  padding-left: 20px; /* Adjust as needed for indentation */
+}
+
+/* Optional: Adjust hover effect for topic rows */
+.topic-row:hover {
+  background-color: var(--hover-bg); /* Consistent hover effect */
+}
+
+/* Optional: Remove border from the last row */
+.topics-table tr:last-child td {
+  border-bottom: none;
+}
+
+.topics-table-container {
+  position: relative;
+}
+
+.search-and-refresh-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px auto;
+  width: 95%;
+}
+
+.search-bar-wrapper {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.refresh-topics-btn {
+  padding: 8px; /* Reduced padding for icon-only button */
+  background-color: var(--card-bg); /* Use CSS variable for consistency */
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the icon */
+}
+
+.refresh-topics-btn:hover {
+  background-color: var(--hover-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.refresh-topics-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Icon Styling */
+.refresh-icon {
+  color: var(--text-color); /* Ensure icon color matches other buttons */
+}

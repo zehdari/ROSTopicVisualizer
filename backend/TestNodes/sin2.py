@@ -8,7 +8,7 @@ import time
 class SineWavePublisher(Node):
     def __init__(self):
         super().__init__('sin_wave_publisher')
-        self.declare_parameter('topic_name', '/sin_wave')
+        self.declare_parameter('topic_name', '/sin_wave2')
         self.declare_parameter('frequency', 1.0)  # Frequency of the sine wave in Hz
         self.declare_parameter('amplitude', 1.0)  # Amplitude of the sine wave
 
