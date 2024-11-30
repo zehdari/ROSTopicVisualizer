@@ -153,12 +153,7 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
   };
 
   return (
-    <div
-      key={topicConfig.name}
-      className="graph-card"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
+    <div key={topicConfig.name} className="graph-card">
       <div className="graph-card-buttons">
         <button
           onClick={() => setIsSettingsOpen(true)}

@@ -150,13 +150,13 @@
   background-color: var(--hover-bg); /* Matches search bar hover background */
 }
 
-/* Styling for the Update Parameters button */
-.update-button-container {
+.button-container {
   display: flex;
   justify-content: center;
+  gap: 10px; /* Adds spacing between buttons */
 }
 
-.update-button-container button {
+.button-container button {
   padding: 10px 20px;
   background-color: var(--card-bg);
   color: var(--button-text, #fff);
@@ -167,11 +167,11 @@
   transition: background-color 0.3s, color 0.3s;
 }
 
-.update-button-container button:hover {
+.button-container button:hover {
   background-color: var(--hover-bg);
 }
 
-.update-button-container button:focus {
+.button-container button:focus {
   border-color: var(--highlight-color);
 }
 
