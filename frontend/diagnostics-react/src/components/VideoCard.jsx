@@ -1,0 +1,129 @@
+import React, { useState, useEffect } from "react";
+import "../styles/VideoCard.css";
+import { FaTimes } from "react-icons/fa";
+import { RefreshCcw } from "lucide-react";
+
+const VideoCard = ({ topic, port, onRemoveVideo }) => {
+  const [streamStarted, setStreamStarted] = useState(false);
+  const [status, setStatus] = useState("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isStartingStream, setIsStartingStream] = useState(false);
+
+  useEffect(() => {
+    if (!streamStarted && !isStartingStream) {
+      startStream();
+    }
+    return () => {
+      stopStream();
+    };
+  }, [topic, port]);
+
+  // Add timeout effect to trigger refresh after stream starts
+  useEffect(() => {
+    if (streamStarted) {
+      const timer = setTimeout(() => {
+        setRefreshTrigger((prev) => prev + 1);
+      }, 1000); // Increased timeout to 1 second to give more time for initialization
+
+      return () => clearTimeout(timer);
+    }
+  }, [streamStarted]);
+
+  const startStream = async () => {
+    if (isStartingStream) return;
+
+    try {
+      setIsStartingStream(true);
+      setStatus("Starting video stream...");
+
+      const response = await fetch("http://localhost:5001/start-video-server", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ topic, port }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStreamStarted(true);
+        setStatus("");
+      } else {
+        setStatus(data.error || "Failed to start stream");
+        setStreamStarted(false);
+      }
+    } catch (error) {
+      setStatus(`Error: ${error.message}`);
+      setStreamStarted(false);
+    } finally {
+      setIsStartingStream(false);
+    }
+  };
+
+  const stopStream = async () => {
+    if (!streamStarted) return;
+
+    try {
+      await fetch("http://localhost:5001/stop-video-server", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ topic }),
+      });
+    } catch (error) {
+      console.error("Error stopping stream:", error);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await stopStream();
+    setStreamStarted(false);
+    startStream();
+  };
+
+  const getImageSrc = () => {
+    return streamStarted
+      ? `http://localhost:${port}/stream?topic=${topic}&t=${Date.now()}`
+      : "";
+  };
+
+  return (
+    <div className="video-card graph-card">
+      <div className="video-card-buttons graph-card-buttons">
+        <button
+          className="settings-video-btn settings-graph-btn"
+          title="Refresh Stream"
+          onClick={handleRefresh}
+          disabled={isStartingStream}
+        >
+          <RefreshCcw size={16} className="refresh-icon" />
+        </button>
+        <button
+          onClick={() => onRemoveVideo(topic)}
+          className="remove-video-btn remove-graph-btn"
+          title="Remove Video"
+        >
+          <FaTimes />
+        </button>
+      </div>
+      <div className="video-header graph-header">
+        <h3>{topic}</h3>
+      </div>
+      <p>{status}</p>
+      {streamStarted && (
+        <div className="video-container">
+          <img
+            key={`${refreshTrigger}-${topic}-${port}`}
+            src={getImageSrc()}
+            alt="Live Feed"
+            className="video-stream"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default VideoCard;

@@ -4,6 +4,7 @@ import { TOPIC_TYPES } from "../config/topicTypes";
 
 export const useVisibleTopics = () => {
   const [visibleTopics, setVisibleTopics] = useState([]);
+  const [visibleVideos, setVisibleVideos] = useState([]);
 
   const handleAddGraph = (newTopic) => {
     // Check if the topic is already visible
@@ -31,13 +32,27 @@ export const useVisibleTopics = () => {
     }
   };
 
+  const handleAddVideo = (newVideo) => {
+    // Check if the video is already visible
+    if (!visibleVideos.some((video) => video.topic === newVideo.topic)) {
+      setVisibleVideos((prev) => [...prev, newVideo]);
+    }
+  };
+
   const updateVisibleTopics = (updatedTopics) => {
     setVisibleTopics(updatedTopics);
   };
 
+  const updateVisibleVideos = (updatedVideos) => {
+    setVisibleVideos(updatedVideos);
+  };
+
   return {
     visibleTopics,
+    visibleVideos,
     handleAddGraph,
+    handleAddVideo,
     updateVisibleTopics,
+    updateVisibleVideos,
   };
 };

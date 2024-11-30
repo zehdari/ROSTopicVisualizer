@@ -217,13 +217,13 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
             <div className="settings-modal-buttons">
               <button
                 onClick={handleSettingsCancel}
-                className="settings-modal-btn cancel-btn"
+                className="settings-modal-btn"
               >
                 <FaTimes /> Cancel
               </button>
               <button
                 onClick={handleSettingsSave}
-                className="settings-modal-btn save-btn"
+                className="settings-modal-btn"
               >
                 <FaSave /> Save
               </button>

@@ -7,7 +7,12 @@ import ParamPanel from "./ParamPanel";
 import { TOPICS_CONFIG, IGNORED_TOPICS } from "../config/topicsConfig";
 import { TOPIC_TYPES } from "../config/topicTypes";
 
-const TopicsTable = ({ onAddGraph, visibleTopics }) => {
+const TopicsTable = ({
+  onAddGraph,
+  onAddVideo,
+  visibleTopics,
+  visibleVideos,
+}) => {
   const [topicsByNode, setTopicsByNode] = useState({});
   const [openTopics, setOpenTopics] = useState({});
   const [expandedNodes, setExpandedNodes] = useState({});
@@ -186,6 +191,7 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
 
   useEffect(() => {
     fetchTopicsAndNodes();
+    console.log(`Visible Videos: ${visibleVideos}`);
 
     return () => {
       if (rosRef.current) {
@@ -297,8 +303,9 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
 
   const toggleAllNodes = () => {
     if (allNodesExpanded) {
-      // Collapse all nodes
+      // Collapse all nodes and close all parameter panels
       setExpandedNodes({});
+      setOpenParamNodes({});
       setAllNodesExpanded(false);
     } else {
       // Expand all nodes
@@ -332,6 +339,7 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
         name: topic.name,
         type: topic.type,
         ...typeConfig,
+        timestamp: Date.now(),
       };
       onAddGraph(dynamicTopicConfig);
     } else {
@@ -339,6 +347,10 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
         `No configuration or type definition found for topic ${topic.name} (${topic.type})`
       );
     }
+  };
+
+  const handleAddVideo = (topic) => {
+    onAddVideo({ topic, port: 9091, timestamp: Date.now() }); // Pass the topic and port to the parent component
   };
 
   const toggleParamPanel = (node, e) => {
@@ -356,11 +368,6 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
       ...prev,
       [node]: !prev[node],
     }));
-  };
-
-  const toggleNodeDetails = (node) => {
-    // If clicking the same node, deselect it
-    setSelectedNode((prevNode) => (prevNode === node ? "" : node));
   };
 
   // Enhanced Filtering: Filter topics and nodes based on the search term
@@ -477,6 +484,21 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleAddGraph(topic);
+                                        }}
+                                        className="add-graph-btn"
+                                      >
+                                        +
+                                      </button>
+                                    )}
+                                  {topic.type === "sensor_msgs/msg/Image" &&
+                                    !visibleVideos.some(
+                                      (visibleVideo) =>
+                                        visibleVideo.topic === topic.name
+                                    ) && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddVideo(topic.name);
                                         }}
                                         className="add-graph-btn"
                                       >

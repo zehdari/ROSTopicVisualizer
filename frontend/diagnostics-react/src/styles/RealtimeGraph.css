@@ -8,16 +8,6 @@
   margin-bottom: 50px;
 }
 
-.visible-graphs {
-  flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-content: flex-start;
-  align-items: flex-start;
-  padding: 10px;
-}
-
 .hidden-graphs-sidebar {
   width: 0px;
   background-color: var(--sidebar-bg);
@@ -52,7 +42,8 @@
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
   width: 100%; /* Allow it to scale */
-  max-width: 475px; /* Set maximum width */
+  max-width: 475px;
+  min-height: 380px; /* Set maximum width */
   box-sizing: border-box; /* Ensure padding is included in the width */
 }
 
@@ -191,6 +182,7 @@
   border-radius: 8px;
   width: 300px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+  border: 1px solid var(--border-color);
 }
 
 .settings-modal-field {
@@ -215,7 +207,6 @@
 .settings-modal-field input:focus {
   outline: none;
   border-color: var(--highlight-color);
-  box-shadow: 0 0 5px var(--highlight-color);
 }
 
 .settings-modal-buttons {
@@ -233,16 +224,24 @@
   align-items: center;
   gap: 5px;
   transition: background-color 0.3s, color 0.3s;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.settings-modal-btn:hover {
+  background-color: var(--hover-bg);
 }
 
 /* Cancel Button in Modal */
-.cancel-btn {
-  background-color: var(--cancel-btn-bg, #f0f0f0);
-  color: var(--cancel-btn-color, #333);
+.settings-btns {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
-.cancel-btn:hover {
-  background-color: var(--cancel-btn-hover-bg, #e0e0e0);
+.settings-btns:hover {
+  background-color: var(--hover-bg);
 }
 
 /* Save Button in Modal */
@@ -325,4 +324,21 @@
 
 .hidden-graph-item:hover {
   background-color: var(--hover-bg);
+}
+
+/* Chrome, Safari, Edge, Opera */
+.settings-modal input[type="number"]::-webkit-inner-spin-button,
+.settings-modal input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+.settings-modal input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Optional: Remove arrows in IE and Edge Legacy */
+.settings-modal input[type="number"] {
+  -ms-appearance: textfield;
 }

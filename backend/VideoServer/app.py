@@ -9,55 +9,71 @@ app = Flask(__name__)
 # Allow cross-origin requests from React app (running on localhost:3000)
 CORS(app, origins="*", methods=["GET", "POST", "OPTIONS"])
 
-# Global variable to hold the current video server process
-current_process = None
+# Dictionary to store the running video server processes and their topics
+video_server_processes = {}
 
-# Function to stop the current video server if it's running
-def stop_video_server():
-    global current_process
-    if current_process:
+# Function to stop a video server process
+def stop_video_server(topic):
+    if topic in video_server_processes:
+        process = video_server_processes[topic]
         try:
-            current_process.terminate()  # Attempt to terminate the process gracefully
-            current_process.wait()  # Wait for process termination
-            print("Video server stopped.")
+            process.terminate()  # Attempt to terminate the process gracefully
+            process.wait()  # Wait for process termination
+            print(f"Video server stopped for topic '{topic}'.")
         except Exception as e:
-            print(f"Error stopping video server: {e}")
+            print(f"Error stopping video server for topic '{topic}': {e}")
         finally:
-            current_process = None  # Reset the process reference
+            del video_server_processes[topic]  # Remove the process from the dictionary
 
 @app.route('/start-video-server', methods=['POST'])
 def start_video_server():
-    global current_process
     try:
-        # Print out the received data for debugging
         data = request.get_json()
         print(f"Received data: {data}")
         
         topic = data.get('topic')
         port = data.get('port')
 
-        # Ensure topic and port are provided
         if not topic or not port:
             return jsonify({"error": "Topic and port are required"}), 400
 
-        # Stop the current video server if it's running
-        if current_process:
-            stop_video_server()
+        # Stop the video server for the same topic if it's already running
+        if topic in video_server_processes:
+            stop_video_server(topic)
 
-        # Build the command to run the web_video_server with the specified topic and port
         command = f"ros2 run web_video_server web_video_server --ros-args --param port:={port} --remap topic:={topic}"
         print(f"Running command: {command}")
 
-        # Ensure ROS 2 is sourced before running the command
-        bash_command = f"bash -c 'source /home/ubuntu/.bashrc && {command}'"  # Ensure the ROS 2 setup is sourced
+        bash_command = f"bash -c 'source /home/ubuntu/.bashrc && {command}'"
         
-        # Run the video server command in the background using subprocess.Popen
-        current_process = subprocess.Popen(bash_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(bash_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        video_server_processes[topic] = process  # Store the process in the dictionary with the topic as the key
 
         return jsonify({"message": f"Video server started for topic '{topic}' on port {port}."})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/stop-video-server', methods=['POST'])
+def stop_video_server_route():
+    try:
+        data = request.get_json()
+        print(f"Received data: {data}")
+        
+        topic = data.get('topic')
+
+        if not topic:
+            return jsonify({"error": "Topic is required"}), 400
+
+        if topic in video_server_processes:
+            stop_video_server(topic)
+            print(f"video_server_processes: {video_server_processes}")
+            return jsonify({"message": f"Video server stopped for topic '{topic}'."})
+        else:
+            return jsonify({"message": f"No video server running for topic '{topic}'."})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)  # Make sure Flask is listening on all interfaces
+    app.run(host='0.0.0.0', port=5001)
