@@ -1,7 +1,6 @@
 /* Base Theme Variables (Dark Mode by Default) */
 :root {
   --bg-color: #202123; /* ChatGPT dark background */
-  --sidebar-bg: #343541; /* Sidebar background color */
   --card-bg: #2b2d31; /* Graph card background color */
   --text-color: #e9e9e9; /* Light gray text color */
   --hover-bg: #3e3f4a; /* Hover background color */

@@ -3,6 +3,7 @@ import RealtimeGraph from "./components/RealtimeGraph";
 import "./styles/App.css";
 import TopicsTable from "./components/TopicsTable";
 import { useVisibleTopics } from "./utils/useVisibleTopics"; // Import the custom hook
+import TfTree from "./components/TfTree";
 
 const App = () => {
   const { visibleTopics, handleAddGraph, updateVisibleTopics } =
@@ -22,6 +23,7 @@ const App = () => {
           visibleTopics={visibleTopics}
         />
       </div>
+      <TfTree />
     </div>
   );
 };
