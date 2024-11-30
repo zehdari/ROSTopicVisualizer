@@ -225,6 +225,43 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.terminal-toggle-btn {
+  padding: 8px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+}
+
+.terminal-toggle-btn:hover {
+  background-color: var(--hover-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tree-toggle-btn {
+  padding: 8px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+}
+
+.tree-toggle-btn:hover {
+  background-color: var(--hover-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
 .search-bar-wrapper {
   flex-grow: 1;
   margin-right: 10px;

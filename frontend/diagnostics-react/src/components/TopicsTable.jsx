@@ -1,17 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service, Topic } from "roslib";
 import "../styles/TopicsTable.css";
-import { RefreshCcw, Settings, Expand, Minimize } from "lucide-react";
+import {
+  RefreshCcw,
+  Settings,
+  Expand,
+  Minimize,
+  Terminal,
+  TreeDeciduous,
+} from "lucide-react";
 import SearchBar from "./SearchBar";
 import ParamPanel from "./ParamPanel";
 import { TOPICS_CONFIG, IGNORED_TOPICS } from "../config/topicsConfig";
 import { TOPIC_TYPES } from "../config/topicTypes";
+import { NETWORK_CONFIG } from "../config/networkConfig";
+import TerminalComponent from "./Terminal";
+import TfTree from "./TfTree";
 
 const TopicsTable = ({
   onAddGraph,
   onAddVideo,
   visibleTopics,
   visibleVideos,
+  isTerminalOpen,
+  isTreeOpen,
+  onToggleTerminal,
+  onToggleTree,
 }) => {
   const [topicsByNode, setTopicsByNode] = useState({});
   const [openTopics, setOpenTopics] = useState({});
@@ -20,7 +34,6 @@ const TopicsTable = ({
   const [ros, setRos] = useState(null);
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(true);
-  const [allNodesExpanded, setAllNodesExpanded] = useState(false);
 
   const topicSubscriptions = useRef({});
   const rosRef = useRef(null);
@@ -42,7 +55,7 @@ const TopicsTable = ({
     }
 
     const newRos = new Ros({
-      url: "ws://192.168.1.19:9090",
+      url: NETWORK_CONFIG.ROS_BRIDGE_URL,
     });
 
     newRos.on("connection", () => {
@@ -301,12 +314,19 @@ const TopicsTable = ({
     });
   };
 
+  const hasExpandedNodes = Object.values(expandedNodes).some((value) => value);
+
   const toggleAllNodes = () => {
-    if (allNodesExpanded) {
-      // Collapse all nodes and close all parameter panels
+    if (hasExpandedNodes) {
+      // Collapse all nodes, close all parameter panels, and close all topic details
       setExpandedNodes({});
       setOpenParamNodes({});
-      setAllNodesExpanded(false);
+
+      // Unsubscribe from all topics and clear openTopics
+      Object.keys(topicSubscriptions.current).forEach((topicName) => {
+        unsubscribeFromTopic(topicName);
+      });
+      setOpenTopics({});
     } else {
       // Expand all nodes
       const allExpandedNodes = Object.keys(topicsByNode).reduce((acc, node) => {
@@ -314,8 +334,15 @@ const TopicsTable = ({
         return acc;
       }, {});
       setExpandedNodes(allExpandedNodes);
-      setAllNodesExpanded(true);
     }
+  };
+
+  const toggleTerminal = () => {
+    setIsTerminalOpen(!isTerminalOpen);
+  };
+
+  const toggleTree = () => {
+    setIsTreeOpen(!isTreeOpen);
   };
 
   const handleAddGraph = (topic) => {
@@ -412,12 +439,27 @@ const TopicsTable = ({
           <button
             onClick={toggleAllNodes}
             className="expand-collapse-btn"
-            aria-label={allNodesExpanded ? "Collapse All" : "Expand All"}
+            aria-label={hasExpandedNodes ? "Collapse All" : "Expand All"}
           >
-            {allNodesExpanded ? <Minimize size={16} /> : <Expand size={16} />}
+            {hasExpandedNodes ? <Minimize size={16} /> : <Expand size={16} />}
+          </button>
+          <button
+            onClick={onToggleTerminal}
+            className="terminal-toggle-btn"
+            aria-label={isTerminalOpen ? "Close Terminal" : "Open Terminal"}
+          >
+            <Terminal size={16} />
+          </button>
+          <button
+            onClick={onToggleTree}
+            className="tree-toggle-btn"
+            aria-label={isTreeOpen ? "Hide Tree" : "Show Tree"}
+          >
+            <TreeDeciduous size={16} />
           </button>
         </div>
       </div>
+
       {loading ? (
         <div className="loading-indicator">Loading topics...</div>
       ) : (

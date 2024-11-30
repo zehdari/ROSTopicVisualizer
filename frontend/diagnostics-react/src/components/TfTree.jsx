@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import ROSLIB from "roslib";
 import Tree from "react-d3-tree";
-import { Eye, EyeOff } from "lucide-react";
 import "../styles/TfTree.css";
+import { NETWORK_CONFIG } from "../config/networkConfig";
 
 const TfTree = () => {
   const [ros, setRos] = useState(null);
@@ -11,16 +11,15 @@ const TfTree = () => {
   const [isListening, setIsListening] = useState(false);
   const [isListeningComplete, setIsListeningComplete] = useState(false);
   const [treeDimensions, setTreeDimensions] = useState({
-    width: 800,
-    height: 600,
+    width: 0,
+    height: 0,
   });
   const [treeTranslate, setTreeTranslate] = useState({ x: 0, y: 0 });
-  const [isTreeVisible, setIsTreeVisible] = useState(true);
   const treeContainerRef = useRef(null);
 
   useEffect(() => {
     const rosInstance = new ROSLIB.Ros({
-      url: "ws://192.168.1.19:9090",
+      url: NETWORK_CONFIG.ROS_BRIDGE_URL,
     });
 
     setRos(rosInstance);
@@ -33,6 +32,8 @@ const TfTree = () => {
     rosInstance.on("connection", () => {
       console.log("Connected to ROS!");
       setConnected(true);
+      // Start listening automatically when connected
+      setIsListening(true);
     });
 
     rosInstance.on("close", () => {
@@ -61,7 +62,6 @@ const TfTree = () => {
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
-  // Recalculate translate when tree dimensions change
   useEffect(() => {
     if (treeContainerRef.current) {
       const dimensions = treeContainerRef.current.getBoundingClientRect();
@@ -72,12 +72,10 @@ const TfTree = () => {
     }
   }, [treeDimensions]);
 
-  // Recalculate dimensions and translate whenever the button is pressed
   const startListening = () => {
     setIsListening(true);
     setIsListeningComplete(false);
     setTransforms({});
-    setIsTreeVisible(true);
 
     if (treeContainerRef.current) {
       const dimensions = treeContainerRef.current.getBoundingClientRect();
@@ -103,7 +101,6 @@ const TfTree = () => {
           const parentFrame = tf.header.frame_id;
           const childFrame = tf.child_frame_id;
 
-          // Prevent duplicates
           const transformKey = `${parentFrame}->${childFrame}`;
           if (!uniqueTransforms.has(transformKey)) {
             uniqueTransforms.add(transformKey);
@@ -171,40 +168,25 @@ const TfTree = () => {
     return createTreeNode("world");
   };
 
-  // Toggle tree visibility
-  const toggleTreeVisibility = () => {
-    setIsTreeVisible((prev) => !prev);
-  };
-
   return (
-    <div className="tree-container" ref={treeContainerRef}>
-      <h1 className="tree-title">TF Tree</h1>
-      <div className="buttons-row">
-        <button
-          onClick={startListening}
-          disabled={isListening}
-          className="start-listening-btn"
-        >
-          {isListening ? "Listening..." : "Start Listening for 5 Seconds"}
-        </button>
-
-        {/* Show/Hide tree visibility button */}
-        {isListeningComplete && transforms && (
+    <div
+      className={`tree-container ${isListeningComplete ? "with-tree" : ""}`}
+      ref={treeContainerRef}
+    >
+      <div className="tree-header">
+        <h1 className="tree-title">TF Tree</h1>
+        {transforms && (
           <button
-            onClick={toggleTreeVisibility}
-            className="toggle-tree-btn"
-            aria-label="Toggle tree visibility"
+            onClick={startListening}
+            disabled={isListening}
+            className="start-listening-btn"
           >
-            {isTreeVisible ? (
-              <EyeOff size={24} /> // Use EyeOff icon when the tree is visible
-            ) : (
-              <Eye size={24} /> // Use Eye icon when the tree is hidden
-            )}
+            {isListening ? "Listening..." : "Refresh Tree"}
           </button>
         )}
       </div>
 
-      {isListeningComplete && transforms && isTreeVisible && (
+      {isListeningComplete && transforms && (
         <div className="tree-wrapper">
           <Tree
             data={buildTreeData(transforms)}

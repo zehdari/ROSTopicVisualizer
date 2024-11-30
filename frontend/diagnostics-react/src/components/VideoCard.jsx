@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../styles/VideoCard.css";
 import { FaTimes } from "react-icons/fa";
 import { RefreshCcw } from "lucide-react";
+import { NETWORK_CONFIG } from "../config/networkConfig";
 
 const VideoCard = ({ topic, port, onRemoveVideo }) => {
   const [streamStarted, setStreamStarted] = useState(false);
@@ -36,13 +37,16 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
       setIsStartingStream(true);
       setStatus("Starting video stream...");
 
-      const response = await fetch("http://localhost:5001/start-video-server", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ topic, port }),
-      });
+      const response = await fetch(
+        `${NETWORK_CONFIG.FLASK_SERVER_URL}/start-video-server`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ topic, port }),
+        }
+      );
 
       const data = await response.json();
 
@@ -65,7 +69,7 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
     if (!streamStarted) return;
 
     try {
-      await fetch("http://localhost:5001/stop-video-server", {
+      await fetch(`${NETWORK_CONFIG.FLASK_SERVER_URL}/stop-video-server`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,7 +89,9 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
 
   const getImageSrc = () => {
     return streamStarted
-      ? `http://localhost:${port}/stream?topic=${topic}&t=${Date.now()}`
+      ? `${
+          NETWORK_CONFIG.VIDEO_STREAM_URL
+        }/stream?topic=${topic}&t=${Date.now()}`
       : "";
   };
 

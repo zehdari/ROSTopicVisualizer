@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service } from "roslib";
 import ClipLoader from "react-spinners/ClipLoader";
 import "../styles/ParamPanel.css";
+import { NETWORK_CONFIG } from "../config/networkConfig";
 
 const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
   const [selectedNode, setSelectedNode] = useState(initialSelectedNode);
@@ -23,7 +24,7 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
   useEffect(() => {
     if (!externalRos) {
       const newRos = new Ros({
-        url: "ws://192.168.1.19:9090",
+        url: NETWORK_CONFIG.ROS_BRIDGE_URL,
       });
 
       newRos.on("connection", () => {

@@ -2,6 +2,7 @@ import React from "react";
 import GraphCard from "./GraphCard";
 import VideoCard from "./VideoCard";
 import "../styles/RealtimeGraph.css";
+import { NETWORK_CONFIG } from "../config/networkConfig";
 
 const RealtimeGraph = ({
   visibleTopics,
@@ -34,13 +35,16 @@ const RealtimeGraph = ({
 
   const handleRemoveVideo = async (topic) => {
     try {
-      const response = await fetch("http://localhost:5001/stop-video-server", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ topic }),
-      });
+      const response = await fetch(
+        `${NETWORK_CONFIG.FLASK_SERVER_URL}/stop-video-server`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ topic }),
+        }
+      );
 
       if (response.ok) {
         const updatedVideos = visibleVideos.filter(

@@ -1,13 +1,14 @@
 // useRosTopic.js
 import { useState, useEffect } from "react";
 import { Ros, Topic, Service } from "roslib";
+import { NETWORK_CONFIG } from "../config/networkConfig";
 
 let ros;
 
 // Initialize rosbridge connection if it's not already connected
 if (!ros) {
   ros = new Ros({
-    url: "ws://192.168.1.19:9090", // Update with your ROS bridge URL
+    url: NETWORK_CONFIG.ROS_BRIDGE_URL, // Update with your ROS bridge URL
   });
 
   ros.on("error", (error) => {
@@ -24,7 +25,7 @@ export const useRosTopic = (topicName, messageType) => {
 
   useEffect(() => {
     if (!ros.isConnected) {
-      ros.connect("ws://localhost:9090"); // Ensure connection is established
+      ros.connect(NETWORK_CONFIG.ROS_BRIDGE_URL); // Ensure connection is established
     }
 
     const topic = new Topic({
@@ -52,7 +53,7 @@ export const useRosService = (serviceName, serviceType) => {
 
   useEffect(() => {
     if (!ros.isConnected) {
-      ros.connect("ws://localhost:9090");
+      ros.connect(NETWORK_CONFIG.ROS_BRIDGE_URL);
     }
 
     const service = new Service({
@@ -78,7 +79,7 @@ export const useRosParam = (paramName) => {
 
   useEffect(() => {
     if (!ros.isConnected) {
-      ros.connect("ws://localhost:9090");
+      ros.connect(NETWORK_CONFIG.ROS_BRIDGE_URL);
     }
 
     const param = new Param({
