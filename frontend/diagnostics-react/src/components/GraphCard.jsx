@@ -29,10 +29,7 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
   const [maxDataPoints, setMaxDataPoints] = useState(50);
   const [inputMaxDataPoints, setInputMaxDataPoints] = useState(maxDataPoints);
 
-  const message = useRosTopic(
-    topicConfig.name,
-    `${topicConfig.package}/msg/${topicConfig.type}`
-  );
+  const message = useRosTopic(topicConfig.name, `${topicConfig.type}`);
 
   const timestampsRef = useRef([]);
   const lastMessageTimeRef = useRef(Date.now());

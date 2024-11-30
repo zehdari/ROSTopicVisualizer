@@ -16,7 +16,7 @@ const App = () => {
         visibleTopics={visibleTopics}
         updateVisibleTopics={updateVisibleTopics}
       />
-      <div class="main-container">
+      <div className="main-container">
         <TopicsTable
           onAddGraph={handleAddGraph}
           visibleTopics={visibleTopics}

@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service, Topic } from "roslib";
 import "../styles/TopicsTable.css";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, Settings, Expand, Minimize } from "lucide-react";
 import SearchBar from "./SearchBar";
 import ParamPanel from "./ParamPanel";
 import { TOPICS_CONFIG, IGNORED_TOPICS } from "../config/topicsConfig";
+import { TOPIC_TYPES } from "../config/topicTypes";
 
 const TopicsTable = ({ onAddGraph, visibleTopics }) => {
   const [topicsByNode, setTopicsByNode] = useState({});
   const [openTopics, setOpenTopics] = useState({});
-  const [selectedNode, setSelectedNode] = useState("");
+  const [expandedNodes, setExpandedNodes] = useState({});
+  const [openParamNodes, setOpenParamNodes] = useState({});
   const [ros, setRos] = useState(null);
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [allNodesExpanded, setAllNodesExpanded] = useState(false);
 
   const topicSubscriptions = useRef({});
   const rosRef = useRef(null);
@@ -292,20 +295,67 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
     });
   };
 
+  const toggleAllNodes = () => {
+    if (allNodesExpanded) {
+      // Collapse all nodes
+      setExpandedNodes({});
+      setAllNodesExpanded(false);
+    } else {
+      // Expand all nodes
+      const allExpandedNodes = Object.keys(topicsByNode).reduce((acc, node) => {
+        acc[node] = true;
+        return acc;
+      }, {});
+      setExpandedNodes(allExpandedNodes);
+      setAllNodesExpanded(true);
+    }
+  };
+
   const handleAddGraph = (topic) => {
-    // Check if the topic is already configured in TOPICS_CONFIG
+    // Check if the topic is already in TOPICS_CONFIG
     const existingTopicConfig = TOPICS_CONFIG.find(
       (configTopic) => configTopic.name === topic.name
     );
 
-    // If the topic is not in the configuration, you might want to add a default parser or configuration
-    if (!existingTopicConfig) {
-      console.warn(`No configuration found for topic ${topic.name}`);
+    if (existingTopicConfig) {
+      // If topic is in TOPICS_CONFIG, use its configuration
+      onAddGraph(existingTopicConfig);
       return;
     }
+    console.log(topic);
 
-    // Trigger the graph addition in the parent component
-    onAddGraph(existingTopicConfig);
+    // Check if the topic's type is in TOPIC_TYPES
+    const typeConfig = TOPIC_TYPES[topic.type];
+    if (typeConfig) {
+      // Dynamically create the topic configuration
+      const dynamicTopicConfig = {
+        name: topic.name,
+        type: topic.type,
+        ...typeConfig,
+      };
+      onAddGraph(dynamicTopicConfig);
+    } else {
+      console.warn(
+        `No configuration or type definition found for topic ${topic.name} (${topic.type})`
+      );
+    }
+  };
+
+  const toggleParamPanel = (node, e) => {
+    // Prevent the node row toggle event from firing
+    e.stopPropagation();
+
+    setOpenParamNodes((prev) => ({
+      ...prev,
+      [node]: !prev[node],
+    }));
+  };
+
+  const toggleNodeTopics = (node) => {
+    setExpandedNodes((prev) => ({
+      ...prev,
+      [node]: !prev[node],
+    }));
   };
 
   const toggleNodeDetails = (node) => {
@@ -343,14 +393,23 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
         <div className="search-bar-wrapper">
           <SearchBar setFilter={setFilter} />
         </div>
-        <button
-          onClick={fetchTopicsAndNodes}
-          className="refresh-topics-btn"
-          disabled={loading}
-          aria-label="Refresh topics"
-        >
-          <RefreshCcw size={16} className="refresh-icon" />
-        </button>
+        <div className="table-action-buttons">
+          <button
+            onClick={fetchTopicsAndNodes}
+            className="refresh-topics-btn"
+            disabled={loading}
+            aria-label="Refresh topics"
+          >
+            <RefreshCcw size={16} className="refresh-icon" />
+          </button>
+          <button
+            onClick={toggleAllNodes}
+            className="expand-collapse-btn"
+            aria-label={allNodesExpanded ? "Collapse All" : "Expand All"}
+          >
+            {allNodesExpanded ? <Minimize size={16} /> : <Expand size={16} />}
+          </button>
+        </div>
       </div>
       {loading ? (
         <div className="loading-indicator">Loading topics...</div>
@@ -364,85 +423,109 @@ const TopicsTable = ({ onAddGraph, visibleTopics }) => {
                     {/* Node Row */}
                     <tr
                       className="node-row"
-                      onClick={() => toggleNodeDetails(node)}
+                      onClick={() => toggleNodeTopics(node)}
                       style={{ cursor: "pointer" }}
                     >
-                      <td colSpan="3">
+                      <td colSpan="2">
                         <strong>{node}</strong>
                       </td>
+                      <td className="node-actions">
+                        <button
+                          onClick={(e) => toggleParamPanel(node, e)}
+                          className="params-btn"
+                          aria-label="View Node Parameters"
+                        >
+                          <Settings size={16} />
+                        </button>
+                      </td>
                     </tr>
-                    {selectedNode === node && (
+
+                    {/* Parameter Panel */}
+                    {openParamNodes[node] && (
                       <tr className="param-panel-row">
                         <td colSpan="3">
                           <ParamPanel initialSelectedNode={node} ros={ros} />
                         </td>
                       </tr>
                     )}
-                    {/* Topic Rows */}
-                    {topics.map((topic, topicIndex) => {
-                      // Check if the topic is in the configuration
-                      const isConfigured = TOPICS_CONFIG.some(
-                        (configTopic) => configTopic.name === topic.name
-                      );
 
-                      return (
-                        <React.Fragment key={`topic-${topicIndex}`}>
-                          <tr
-                            className="topic-row hidden-graph-item"
-                            onClick={() => toggleTopicDetails(topic.name)}
-                          >
-                            <td className="topic-name">{topic.name}</td>
-                            <td>{topic.type}</td>
-                            <td>
-                              {isConfigured &&
-                                !visibleTopics.some(
-                                  (visibleTopic) =>
-                                    visibleTopic.name === topic.name
-                                ) && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation(); // Prevent row click event
-                                      handleAddGraph(topic);
-                                    }}
-                                    className="add-graph-btn"
-                                  >
-                                    +
-                                  </button>
-                                )}
-                            </td>
-                          </tr>
-                          {openTopics[topic.name] && (
-                            <tr className="topic-details-row">
-                              <td colSpan="3">
-                                <div className="graph-card topic-details-content">
-                                  <p>
-                                    <strong>Type:</strong> {topic.type}
-                                  </p>
-                                  <p>
-                                    <strong>Frequency:</strong>{" "}
-                                    {openTopics[topic.name]?.frequency
-                                      ? `${openTopics[topic.name].frequency} Hz`
-                                      : "Calculating..."}
-                                  </p>
-                                  {openTopics[topic.name]?.latestMessage ? (
-                                    <>
+                    {/* Topics for the Node */}
+                    {expandedNodes[node] && (
+                      <>
+                        {topics.map((topic, topicIndex) => {
+                          // Check if the topic is in the configuration (TOPICS_CONFIG)
+                          const isConfigured =
+                            TOPICS_CONFIG.some(
+                              (configTopic) => configTopic.name === topic.name
+                            ) || topic.type in TOPIC_TYPES;
+
+                          return (
+                            <React.Fragment key={`topic-${topicIndex}`}>
+                              <tr
+                                className="topic-row hidden-graph-item"
+                                onClick={() => toggleTopicDetails(topic.name)}
+                              >
+                                <td className="topic-name">{topic.name}</td>
+                                <td>{topic.type}</td>
+                                <td>
+                                  {isConfigured &&
+                                    !visibleTopics.some(
+                                      (visibleTopic) =>
+                                        visibleTopic.name === topic.name
+                                    ) && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddGraph(topic);
+                                        }}
+                                        className="add-graph-btn"
+                                      >
+                                        +
+                                      </button>
+                                    )}
+                                </td>
+                              </tr>
+
+                              {/* Topic Details */}
+                              {openTopics[topic.name] && (
+                                <tr className="topic-details-row">
+                                  <td colSpan="3">
+                                    <div className="graph-card topic-details-content">
                                       <p>
-                                        <strong>Latest Message:</strong>
+                                        <strong>Type:</strong> {topic.type}
                                       </p>
-                                      <pre>
-                                        {openTopics[topic.name].latestMessage}
-                                      </pre>
-                                    </>
-                                  ) : (
-                                    <p>Waiting for message...</p>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
+                                      <p>
+                                        <strong>Frequency:</strong>{" "}
+                                        {openTopics[topic.name]?.frequency
+                                          ? `${
+                                              openTopics[topic.name].frequency
+                                            } Hz`
+                                          : "Calculating..."}
+                                      </p>
+                                      {openTopics[topic.name]?.latestMessage ? (
+                                        <>
+                                          <p>
+                                            <strong>Latest Message:</strong>
+                                          </p>
+                                          <pre>
+                                            {
+                                              openTopics[topic.name]
+                                                .latestMessage
+                                            }
+                                          </pre>
+                                        </>
+                                      ) : (
+                                        <p>Waiting for message...</p>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </>
+                    )}
                   </React.Fragment>
                 )
               )}

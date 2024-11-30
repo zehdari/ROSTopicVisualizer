@@ -472,13 +472,16 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
             };
             break;
           case 8: // Double Array
+            const doubleArrayValue = paramValue.double_array_value;
             paramUpdate.value = {
               type: 8,
-              double_array_value: paramValue.double_array_value
-                .split(",")
-                .map((item) => item.trim())
-                .filter((item) => !isNaN(parseFloat(item))) // Validate doubles
-                .map((item) => parseFloat(item)),
+              double_array_value: Array.isArray(doubleArrayValue)
+                ? doubleArrayValue
+                : doubleArrayValue
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter((item) => !isNaN(parseFloat(item))) // Validate doubles
+                    .map((item) => parseFloat(item)),
             };
             break;
           case 9: // String Array

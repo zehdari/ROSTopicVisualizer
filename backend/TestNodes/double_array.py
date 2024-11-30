@@ -26,7 +26,7 @@ class DoubleArrayNode(Node):
         return array.array('d', values)  # Convert to float64
 
     def publish_double_array(self):
-        double_array = self.get_float64_array('double_array_param')
+        double_array = self.get_parameter(param_name).get_parameter_value().double_array_value
 
         msg = Float64MultiArray()
         msg.data = double_array

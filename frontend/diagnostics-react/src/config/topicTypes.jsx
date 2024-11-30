@@ -1,7 +1,23 @@
-// topicTypes.jsx
+import "../styles/graphColors.css";
+
+// Function to get CSS variables (color values) dynamically
+const getCSSColor = (varName) => {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
+};
+
+const generateArrayGraphKeys = (dataArray) => {
+  return dataArray.map((value, index) => ({
+    key: `value${index}`,
+    name: `Value ${index + 1}`,
+    stroke: getCSSColor(`--color-${(index % 10) + 1}`), // Color cycling based on index
+  }));
+};
+
+// Use CSS variable names to retrieve color values
 export const TOPIC_TYPES = {
-  Twist: {
-    package: "geometry_msgs",
+  "geometry_msgs/msg/Twist": {
     parser: (message) => ({
       time: new Date().toLocaleTimeString(),
       linearX: message.linear?.x || 0,
@@ -12,32 +28,70 @@ export const TOPIC_TYPES = {
       angularZ: message.angular?.z || 0,
     }),
     graphKeys: [
-      { key: "linearX", name: "Linear X", stroke: "#8884d8" },
-      { key: "linearY", name: "Linear Y", stroke: "#82ca9d" },
-      { key: "linearZ", name: "Linear Z", stroke: "#ffc658" },
-      { key: "angularX", name: "Angular X", stroke: "#d84d8c" },
-      { key: "angularY", name: "Angular Y", stroke: "#4d8cd8" },
-      { key: "angularZ", name: "Angular Z", stroke: "#8c4dd8" },
+      {
+        key: "linearX",
+        name: "Linear X",
+        stroke: getCSSColor("--color-light-blue"),
+      },
+      {
+        key: "linearY",
+        name: "Linear Y",
+        stroke: getCSSColor("--color-soft-green"),
+      },
+      {
+        key: "linearZ",
+        name: "Linear Z",
+        stroke: getCSSColor("--color-light-yellow"),
+      },
+      {
+        key: "angularX",
+        name: "Angular X",
+        stroke: getCSSColor("--color-soft-red"),
+      },
+      {
+        key: "angularY",
+        name: "Angular Y",
+        stroke: getCSSColor("--color-light-sky-blue"),
+      },
+      {
+        key: "angularZ",
+        name: "Angular Z",
+        stroke: getCSSColor("--color-purple"),
+      },
     ],
   },
-  Bool: {
-    package: "std_msgs",
+  "std_msgs/msg/Bool": {
     parser: (message) => ({
       time: new Date().toLocaleTimeString(),
       value: message.data ? 1 : 0,
     }),
-    graphKeys: [{ key: "value", name: "Enabled", stroke: "#8884d8" }],
+    graphKeys: [
+      {
+        key: "value",
+        name: "Enabled",
+        stroke: getCSSColor("--color-light-blue"),
+      },
+    ],
   },
-  Float64: {
-    package: "std_msgs",
+  "std_msgs/msg/Float64": {
     parser: (message) => ({
       time: new Date().toLocaleTimeString(),
       value: message.data || 0,
     }),
-    graphKeys: [{ key: "value", name: "Data", stroke: "#82ca9d" }],
+    graphKeys: [
+      { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
+    ],
   },
-  Odometry: {
-    package: "nav_msgs",
+  "std_msgs/msg/Int32": {
+    parser: (message) => ({
+      time: new Date().toLocaleTimeString(),
+      value: message.data || 0,
+    }),
+    graphKeys: [
+      { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
+    ],
+  },
+  "nav_msgs/msg/Odometry": {
     parser: (message) => ({
       time: new Date().toLocaleTimeString(),
       positionX: message.pose?.pose?.position?.x || 0,
@@ -45,13 +99,24 @@ export const TOPIC_TYPES = {
       positionZ: message.pose?.pose?.position?.z || 0,
     }),
     graphKeys: [
-      { key: "positionX", name: "Position X", stroke: "#8884d8" },
-      { key: "positionY", name: "Position Y", stroke: "#82ca9d" },
-      { key: "positionZ", name: "Position Z", stroke: "#ffc658" },
+      {
+        key: "positionX",
+        name: "Position X",
+        stroke: getCSSColor("--color-light-blue"),
+      },
+      {
+        key: "positionY",
+        name: "Position Y",
+        stroke: getCSSColor("--color-soft-green"),
+      },
+      {
+        key: "positionZ",
+        name: "Position Z",
+        stroke: getCSSColor("--color-light-yellow"),
+      },
     ],
   },
-  WrenchStamped: {
-    package: "geometry_msgs",
+  "geometry_msgs/msg/WrenchStamped": {
     parser: (message) => ({
       time: new Date().toLocaleTimeString(),
       forceX: message.wrench?.force?.x || 0,
@@ -62,24 +127,39 @@ export const TOPIC_TYPES = {
       torqueZ: message.wrench?.torque?.z || 0,
     }),
     graphKeys: [
-      { key: "forceX", name: "Force X", stroke: "#8884d8" },
-      { key: "forceY", name: "Force Y", stroke: "#82ca9d" },
-      { key: "forceZ", name: "Force Z", stroke: "#ffc658" },
-      { key: "torqueX", name: "Torque X", stroke: "#d84d8c" },
-      { key: "torqueY", name: "Torque Y", stroke: "#4d8cd8" },
-      { key: "torqueZ", name: "Torque Z", stroke: "#8c4dd8" },
+      {
+        key: "forceX",
+        name: "Force X",
+        stroke: getCSSColor("--color-light-blue"),
+      },
+      {
+        key: "forceY",
+        name: "Force Y",
+        stroke: getCSSColor("--color-soft-green"),
+      },
+      {
+        key: "forceZ",
+        name: "Force Z",
+        stroke: getCSSColor("--color-light-yellow"),
+      },
+      {
+        key: "torqueX",
+        name: "Torque X",
+        stroke: getCSSColor("--color-soft-red"),
+      },
+      {
+        key: "torqueY",
+        name: "Torque Y",
+        stroke: getCSSColor("--color-light-sky-blue"),
+      },
+      {
+        key: "torqueZ",
+        name: "Torque Z",
+        stroke: getCSSColor("--color-purple"),
+      },
     ],
   },
-  Float32MultiArray: {
-    package: "std_msgs",
-    parser: (message) => ({
-      time: new Date().toLocaleTimeString(),
-      data: message.data || [],
-    }),
-    graphKeys: [{ key: "data", name: "Array Data", stroke: "#8884d8" }],
-  },
-  TwistWithCovarianceStamped: {
-    package: "geometry_msgs",
+  "geometry_msgs/msg/TwistWithCovarianceStamped": {
     parser: (message) => ({
       time: new Date().toLocaleTimeString(),
       linearX: message.twist?.linear?.x || 0,
@@ -91,13 +171,41 @@ export const TOPIC_TYPES = {
       covariance: message.twist?.covariance || [],
     }),
     graphKeys: [
-      { key: "linearX", name: "Linear X", stroke: "#8884d8" },
-      { key: "linearY", name: "Linear Y", stroke: "#82ca9d" },
-      { key: "linearZ", name: "Linear Z", stroke: "#ffc658" },
-      { key: "angularX", name: "Angular X", stroke: "#d84d8c" },
-      { key: "angularY", name: "Angular Y", stroke: "#4d8cd8" },
-      { key: "angularZ", name: "Angular Z", stroke: "#8c4dd8" },
-      { key: "covariance", name: "Covariance", stroke: "#ff6347" },
+      {
+        key: "linearX",
+        name: "Linear X",
+        stroke: getCSSColor("--color-light-blue"),
+      },
+      {
+        key: "linearY",
+        name: "Linear Y",
+        stroke: getCSSColor("--color-soft-green"),
+      },
+      {
+        key: "linearZ",
+        name: "Linear Z",
+        stroke: getCSSColor("--color-light-yellow"),
+      },
+      {
+        key: "angularX",
+        name: "Angular X",
+        stroke: getCSSColor("--color-soft-red"),
+      },
+      {
+        key: "angularY",
+        name: "Angular Y",
+        stroke: getCSSColor("--color-light-sky-blue"),
+      },
+      {
+        key: "angularZ",
+        name: "Angular Z",
+        stroke: getCSSColor("--color-purple"),
+      },
+      {
+        key: "covariance",
+        name: "Covariance",
+        stroke: getCSSColor("--color-tomato"),
+      },
     ],
   },
 };
