@@ -134,7 +134,17 @@ const PointCloudViewer = ({
   const isDraggingRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
 
+  const touchRef = useRef({
+    isRotating: false,
+    isPanning: false,
+    lastX: 0,
+    lastY: 0,
+    lastDistance: 0,
+    lastCenter: { x: 0, y: 0 },
+  });
+
   const resetCamera = () => {
+    // Reset camera to default position and orientation
     cameraRef.current = {
       ...DEFAULT_CAMERA,
       position: [...DEFAULT_CAMERA.position],
@@ -143,6 +153,60 @@ const PointCloudViewer = ({
       eye: [...DEFAULT_CAMERA.eye],
       up: [...DEFAULT_CAMERA.up],
     };
+
+    // Reset touch states
+    touchRef.current = {
+      isRotating: false,
+      isPanning: false,
+      lastX: 0,
+      lastY: 0,
+      lastDistance: 0,
+      lastCenter: { x: 0, y: 0 },
+    };
+
+    // Reset mouse states
+    isDraggingRef.current = false;
+    lastMouseRef.current = { x: 0, y: 0 };
+
+    // Reset keyboard states
+    keysPressed.current = {};
+
+    // Force a camera position update
+    updateCameraPosition();
+
+    // Force a re-render if needed
+    if (reglRef.current && drawCommandRef.current) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const projection = mat4.perspective(
+          mat4.create(),
+          Math.PI / 4,
+          canvas.width / canvas.height,
+          0.1,
+          100.0
+        );
+
+        const view = mat4.lookAt(
+          mat4.create(),
+          cameraRef.current.eye,
+          cameraRef.current.center,
+          cameraRef.current.up
+        );
+
+        reglRef.current.clear({
+          color: [0.1, 0.1, 0.1, 1],
+          depth: 1,
+        });
+
+        drawCommandRef.current({
+          positions: pointData?.positions,
+          colors: pointData?.colors,
+          count: pointData?.count,
+          view,
+          projection,
+        });
+      }
+    }
   };
   // Pass the resetCamera function to the onReset callback
   useEffect(() => {
@@ -365,6 +429,97 @@ const PointCloudViewer = ({
     };
   }, []);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleTouchStart = (e) => {
+      e.preventDefault();
+      const touches = e.touches;
+
+      if (touches.length === 1) {
+        // Single touch for rotation
+        touchRef.current.isRotating = true;
+        touchRef.current.lastX = touches[0].clientX;
+        touchRef.current.lastY = touches[0].clientY;
+      } else if (touches.length === 2) {
+        // Two touches for pinch zoom and pan
+        touchRef.current.isPanning = true;
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        touchRef.current.lastDistance = Math.sqrt(dx * dx + dy * dy);
+        touchRef.current.lastX = (touches[0].clientX + touches[1].clientX) / 2;
+        touchRef.current.lastY = (touches[0].clientY + touches[1].clientY) / 2;
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      e.preventDefault();
+      const touches = e.touches;
+      const camera = cameraRef.current;
+
+      if (touches.length === 1 && touchRef.current.isRotating) {
+        // Handle rotation
+        const dx = touches[0].clientX - touchRef.current.lastX;
+        const dy = touches[0].clientY - touchRef.current.lastY;
+        const speed = 0.005;
+
+        camera.theta -= dx * speed;
+        camera.phi = Math.max(
+          0.1,
+          Math.min(Math.PI - 0.1, camera.phi + dy * speed)
+        );
+
+        touchRef.current.lastX = touches[0].clientX;
+        touchRef.current.lastY = touches[0].clientY;
+      } else if (touches.length === 2) {
+        // Handle zoom and pan
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Zoom
+        const deltaZoom = (distance - touchRef.current.lastDistance) * 0.01;
+        camera.radius = Math.max(0.1, camera.radius * (1 - deltaZoom));
+
+        // Pan
+        const centerX = (touches[0].clientX + touches[1].clientX) / 2;
+        const centerY = (touches[0].clientY + touches[1].clientY) / 2;
+        const panX = centerX - touchRef.current.lastX;
+        const panY = centerY - touchRef.current.lastY;
+        const panSpeed = 0.005;
+
+        camera.position[0] += panX * panSpeed;
+        camera.position[1] -= panY * panSpeed;
+
+        touchRef.current.lastDistance = distance;
+        touchRef.current.lastX = centerX;
+        touchRef.current.lastY = centerY;
+      }
+
+      updateCameraPosition();
+    };
+
+    const handleTouchEnd = (e) => {
+      e.preventDefault();
+      touchRef.current.isRotating = false;
+      touchRef.current.isPanning = false;
+    };
+
+    // Add touch event listeners
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
+    canvas.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+
+    return () => {
+      canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("touchend", handleTouchEnd);
+      canvas.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, []);
+
   // Modified rendering effect to include camera position updates
   useEffect(() => {
     if (!pointCloudMessage || !reglRef.current || !drawCommandRef.current)
@@ -423,7 +578,10 @@ const PointCloudViewer = ({
         className="w-full h-full"
         width={350}
         height={300}
-        style={{ display: "block" }}
+        style={{
+          display: "block",
+          touchAction: "none", // Prevent default touch behaviors
+        }}
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
