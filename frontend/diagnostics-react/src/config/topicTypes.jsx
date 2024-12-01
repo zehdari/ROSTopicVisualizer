@@ -208,4 +208,24 @@ export const TOPIC_TYPES = {
       },
     ],
   },
+  "sensor_msgs/msg/PointCloud2": {
+    parser: (message) => ({
+      time: new Date().toLocaleTimeString(),
+      // For plotting, we'll just show the point count
+      pointCount: message.width * message.height || 0,
+      dataSize: message.data?.length || 0,
+    }),
+    graphKeys: [
+      {
+        key: "pointCount",
+        name: "Number of Points",
+        stroke: getCSSColor("--color-light-blue"),
+      },
+      {
+        key: "dataSize",
+        name: "Data Size (bytes)",
+        stroke: getCSSColor("--color-soft-green"),
+      },
+    ],
+  },
 };

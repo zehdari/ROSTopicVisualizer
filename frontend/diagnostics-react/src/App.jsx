@@ -13,10 +13,13 @@ const App = () => {
   const {
     visibleTopics,
     visibleVideos,
+    visiblePointClouds,
     handleAddGraph,
     handleAddVideo,
+    handleAddPointCloud,
     updateVisibleTopics,
     updateVisibleVideos,
+    updateVisiblePointClouds,
   } = useVisibleTopics();
 
   const toggleTerminal = () => setIsTerminalOpen((prev) => !prev);
@@ -25,22 +28,24 @@ const App = () => {
   return (
     <div className="app-container">
       <h1 className="app-header">Talos Diagnostics</h1>
-
       <RealtimeGraph
         visibleTopics={visibleTopics}
         visibleVideos={visibleVideos}
+        visiblePointClouds={visiblePointClouds}
         updateVisibleTopics={updateVisibleTopics}
         updateVisibleVideos={updateVisibleVideos}
+        updateVisiblePointClouds={updateVisiblePointClouds}
       />
-
       <div className="main-container">
         {isTreeOpen && <TfTree />}
         {isTerminalOpen && <TerminalComponent />}
         <TopicsTable
           onAddGraph={handleAddGraph}
           onAddVideo={handleAddVideo}
+          onAddPointCloud={handleAddPointCloud}
           visibleTopics={visibleTopics}
           visibleVideos={visibleVideos}
+          visiblePointClouds={visiblePointClouds}
           isTerminalOpen={isTerminalOpen}
           isTreeOpen={isTreeOpen}
           onToggleTerminal={toggleTerminal}

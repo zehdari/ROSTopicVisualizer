@@ -20,8 +20,10 @@ import TfTree from "./TfTree";
 const TopicsTable = ({
   onAddGraph,
   onAddVideo,
+  onAddPointCloud, // Add this
   visibleTopics,
   visibleVideos,
+  visiblePointClouds, // Add this
   isTerminalOpen,
   isTreeOpen,
   onToggleTerminal,
@@ -337,12 +339,12 @@ const TopicsTable = ({
     }
   };
 
-  const toggleTerminal = () => {
-    setIsTerminalOpen(!isTerminalOpen);
-  };
-
-  const toggleTree = () => {
-    setIsTreeOpen(!isTreeOpen);
+  const handleAddPointCloud = (topic) => {
+    onAddPointCloud({
+      name: topic.name,
+      type: topic.type,
+      timestamp: Date.now(),
+    });
   };
 
   const handleAddGraph = (topic) => {
@@ -517,7 +519,10 @@ const TopicsTable = ({
                                 <td className="topic-name">{topic.name}</td>
                                 <td>{topic.type}</td>
                                 <td>
+                                  {/* For regular graphs */}
                                   {isConfigured &&
+                                    topic.type !==
+                                      "sensor_msgs/msg/PointCloud2" &&
                                     !visibleTopics.some(
                                       (visibleTopic) =>
                                         visibleTopic.name === topic.name
@@ -532,6 +537,7 @@ const TopicsTable = ({
                                         +
                                       </button>
                                     )}
+                                  {/* For videos */}
                                   {topic.type === "sensor_msgs/msg/Image" &&
                                     !visibleVideos.some(
                                       (visibleVideo) =>
@@ -541,6 +547,23 @@ const TopicsTable = ({
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleAddVideo(topic.name);
+                                        }}
+                                        className="add-graph-btn"
+                                      >
+                                        +
+                                      </button>
+                                    )}
+                                  {/* For point clouds */}
+                                  {topic.type ===
+                                    "sensor_msgs/msg/PointCloud2" &&
+                                    !visiblePointClouds.some(
+                                      (visiblePC) =>
+                                        visiblePC.name === topic.name
+                                    ) && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddPointCloud(topic); // Use the new handler
                                         }}
                                         className="add-graph-btn"
                                       >
