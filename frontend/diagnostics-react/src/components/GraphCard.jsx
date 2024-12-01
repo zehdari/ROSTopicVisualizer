@@ -10,17 +10,50 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useRosTopic } from "../utils/useRosTopic";
-import { FaCog, FaSave, FaTimes } from "react-icons/fa"; // Importing icons
-import "../styles/RealtimeGraph.css"; // Assume you have corresponding CSS
+import { FaCog, FaSave, FaTimes } from "react-icons/fa";
 
 const frequencyWindow = 5;
 const frequencyTimeout = 5000;
 
+const getCSSColorVariables = () => {
+  const styles = getComputedStyle(document.documentElement);
+  const colorVars =
+    Array.from(document.styleSheets)
+      .flatMap((sheet) => {
+        try {
+          return Array.from(sheet.cssRules);
+        } catch {
+          return [];
+        }
+      })
+      .find((rule) => rule.selectorText === ":root")?.style || [];
+
+  return Array.from(colorVars)
+    .filter((prop) => prop.startsWith("--color-"))
+    .map((prop) => `var(${prop})`);
+};
+
+const generateArrayGraphKeys = (length) => {
+  const colors = getCSSColorVariables();
+  return Array.from({ length }, (_, index) => ({
+    key: `value${index}`,
+    name: `Value ${index + 1}`,
+    stroke: colors[index % colors.length],
+  }));
+};
+
+const isMultiArrayType = (topicConfig) => {
+  return (
+    topicConfig.isDynamicKeys === true && topicConfig.graphKeys.length === 0
+  );
+};
+
 const GraphCard = ({ topicConfig, onRemoveGraph }) => {
   const [data, setData] = useState([]);
+  const [graphKeys, setGraphKeys] = useState(topicConfig.graphKeys || []);
   const [frequency, setFrequency] = useState(0);
   const [activeLines, setActiveLines] = useState(
-    topicConfig.graphKeys.reduce((acc, key) => {
+    (topicConfig.graphKeys || []).reduce((acc, key) => {
       acc[key.key] = true;
       return acc;
     }, {})
@@ -29,10 +62,52 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
   const [maxDataPoints, setMaxDataPoints] = useState(50);
   const [inputMaxDataPoints, setInputMaxDataPoints] = useState(maxDataPoints);
 
-  const message = useRosTopic(topicConfig.name, `${topicConfig.type}`);
-
+  const message = useRosTopic(topicConfig.name, topicConfig.type);
   const timestampsRef = useRef([]);
   const lastMessageTimeRef = useRef(Date.now());
+  const isInitializedRef = useRef(false);
+
+  // Initialize dynamic graph keys when first message arrives
+  useEffect(() => {
+    if (message && topicConfig.isDynamicKeys && !isInitializedRef.current) {
+      if (topicConfig.type === "std_msgs/msg/UInt8MultiArray") {
+        const binaryString = atob(message.data);
+        const length = binaryString.length;
+
+        const newGraphKeys = generateArrayGraphKeys(length);
+
+        setGraphKeys(newGraphKeys);
+
+        const newActiveLines = newGraphKeys.reduce((acc, key) => {
+          acc[key.key] = true;
+          return acc;
+        }, {});
+        setActiveLines(newActiveLines);
+        isInitializedRef.current = true;
+      } else if (isMultiArrayType(topicConfig) && Array.isArray(message.data)) {
+        // Handle other multi-array types as before
+        const newGraphKeys = generateArrayGraphKeys(message.data.length);
+        setGraphKeys(newGraphKeys);
+        const newActiveLines = newGraphKeys.reduce((acc, key) => {
+          acc[key.key] = true;
+          return acc;
+        }, {});
+        setActiveLines(newActiveLines);
+        isInitializedRef.current = true;
+      }
+    }
+  }, [message, topicConfig.isDynamicKeys, topicConfig.type]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const currentTime = Date.now();
+      if (currentTime - lastMessageTimeRef.current > frequencyTimeout) {
+        setFrequency(0);
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const currentTime = Date.now();
@@ -57,17 +132,6 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
       setData((prevData) => [...prevData.slice(-maxDataPoints + 1), dataEntry]);
     }
   }, [message, topicConfig, maxDataPoints]);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      const currentTime = Date.now();
-      if (currentTime - lastMessageTimeRef.current > frequencyTimeout) {
-        setFrequency(0);
-      }
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
 
   const handleLegendClick = (dataKey) => {
     setActiveLines((prevActiveLines) => ({
@@ -106,11 +170,6 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
     );
   };
 
-  const memoizedRenderLegend = React.useCallback(renderCustomLegend, [
-    activeLines,
-    topicConfig,
-  ]);
-
   const customTooltip = ({ payload, label }) => {
     if (!payload || payload.length === 0) return null;
 
@@ -134,23 +193,8 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
     );
   };
 
-  const handleSettingsSave = () => {
-    const parsedValue = parseInt(inputMaxDataPoints, 10);
-    if (!isNaN(parsedValue) && parsedValue > 0) {
-      setMaxDataPoints(parsedValue);
-      setIsSettingsOpen(false);
-    } else {
-      alert("Please enter a valid positive number.");
-    }
-  };
-
-  const handleSettingsCancel = () => {
-    setInputMaxDataPoints(maxDataPoints);
-    setIsSettingsOpen(false);
-  };
-
   return (
-    <div key={topicConfig.name} className="graph-card">
+    <div className="graph-card">
       <div className="graph-card-buttons">
         <button
           onClick={() => setIsSettingsOpen(true)}
@@ -174,6 +218,7 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
           {frequency > 0 ? `${frequency} Hz` : "0 Hz"}
         </div>
       </div>
+
       <div style={{ width: "100%", maxWidth: "450px", height: "300px" }}>
         <ResponsiveContainer>
           <LineChart
@@ -184,8 +229,8 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
             <XAxis dataKey="time" />
             <YAxis />
             <Tooltip content={customTooltip} />
-            <Legend content={memoizedRenderLegend} />
-            {topicConfig.graphKeys.map((keyConfig) => (
+            <Legend content={renderCustomLegend} />
+            {graphKeys.map((keyConfig) => (
               <Line
                 key={`${topicConfig.name}-${keyConfig.key}`}
                 type="monotone"
@@ -200,6 +245,7 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
           </LineChart>
         </ResponsiveContainer>
       </div>
+
       {isSettingsOpen && (
         <div className="settings-modal">
           <div className="settings-modal-content">
@@ -216,13 +262,22 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
             </div>
             <div className="settings-modal-buttons">
               <button
-                onClick={handleSettingsCancel}
+                onClick={() => {
+                  setInputMaxDataPoints(maxDataPoints);
+                  setIsSettingsOpen(false);
+                }}
                 className="settings-modal-btn"
               >
                 <FaTimes /> Cancel
               </button>
               <button
-                onClick={handleSettingsSave}
+                onClick={() => {
+                  const parsedValue = parseInt(inputMaxDataPoints, 10);
+                  if (!isNaN(parsedValue) && parsedValue > 0) {
+                    setMaxDataPoints(parsedValue);
+                    setIsSettingsOpen(false);
+                  }
+                }}
                 className="settings-modal-btn"
               >
                 <FaSave /> Save

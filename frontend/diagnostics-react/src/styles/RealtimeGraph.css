@@ -204,6 +204,10 @@
   color: var(--text-color);
 }
 
+.settings-modal-field :hover {
+  background-color: var(--hover-bg);
+}
+
 .settings-modal-field input:focus {
   outline: none;
   border-color: var(--highlight-color);

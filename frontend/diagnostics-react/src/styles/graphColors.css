@@ -1,13 +1,13 @@
 /* graphColors.css */
 :root {
-  --color-light-blue: #8884d8;
-  --color-light-sky-blue: #4d8cd8;
+  --color-cyan: #66c2ff;
   --color-soft-green: #82ca9d;
   --color-light-yellow: #ffc658;
-  --color-coral: #ff7f50;
-  --color-soft-red: #d84d8c;
-  --color-tomato: #ff6347;
   --color-purple: #8c4dd8;
+  --color-soft-red: #d84d8c;
+  --color-light-blue: #8884d8;
+  --color-coral: #ff7f50;
+  --color-sky-blue: #4d8cd8;
   --color-soft-lavender: #c672d1;
-  --color-light-sky-blue: #66c2ff;
+  --color-tomato: #ff6347;
 }

@@ -14,16 +14,14 @@ import ParamPanel from "./ParamPanel";
 import { TOPICS_CONFIG, IGNORED_TOPICS } from "../config/topicsConfig";
 import { TOPIC_TYPES } from "../config/topicTypes";
 import { NETWORK_CONFIG } from "../config/networkConfig";
-import TerminalComponent from "./Terminal";
-import TfTree from "./TfTree";
 
 const TopicsTable = ({
   onAddGraph,
   onAddVideo,
-  onAddPointCloud, // Add this
+  onAddPointCloud,
   visibleTopics,
   visibleVideos,
-  visiblePointClouds, // Add this
+  visiblePointClouds,
   isTerminalOpen,
   isTreeOpen,
   onToggleTerminal,

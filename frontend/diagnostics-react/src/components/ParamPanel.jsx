@@ -443,58 +443,74 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
             };
             break;
           case 5: // Byte Array
+            const byteArrayValue = Array.isArray(paramValue.byte_array_value)
+              ? paramValue.byte_array_value
+              : paramValue.byte_array_value.split(",");
             paramUpdate.value = {
               type: 5,
-              byte_array_value: paramValue.byte_array_value
-                .split(",")
-                .map((item) => item.trim())
-                .filter((item) => !isNaN(parseInt(item, 10))) // Validate integers
+              byte_array_value: byteArrayValue
+                .map((item) => (typeof item === "string" ? item.trim() : item))
+                .filter((item) => !isNaN(parseInt(item, 10)))
                 .map((item) => parseInt(item, 10)),
             };
             break;
           case 6: // Bool Array
+            const boolArrayValue = Array.isArray(paramValue.bool_array_value)
+              ? paramValue.bool_array_value
+              : paramValue.bool_array_value.split(",");
             paramUpdate.value = {
               type: 6,
-              bool_array_value: paramValue.bool_array_value
-                .split(",")
-                .map((item) => item.trim().toLowerCase())
-                .filter((item) => item === "true" || item === "false") // Validate booleans
+              bool_array_value: boolArrayValue
+                .map((item) =>
+                  typeof item === "string"
+                    ? item.trim().toLowerCase()
+                    : item.toString().toLowerCase()
+                )
+                .filter((item) => item === "true" || item === "false")
                 .map((item) => item === "true"),
             };
             break;
           case 7: // Integer Array
+            const intArrayValue = Array.isArray(paramValue.integer_array_value)
+              ? paramValue.integer_array_value
+              : paramValue.integer_array_value.split(",");
             paramUpdate.value = {
               type: 7,
-              integer_array_value: paramValue.integer_array_value
-                .split(",")
-                .map((item) => item.trim())
-                .filter((item) => !isNaN(parseInt(item, 10))) // Validate integers
+              integer_array_value: intArrayValue
+                .map((item) => (typeof item === "string" ? item.trim() : item))
+                .filter((item) => !isNaN(parseInt(item, 10)))
                 .map((item) => parseInt(item, 10)),
             };
             break;
           case 8: // Double Array
-            const doubleArrayValue = paramValue.double_array_value;
+            const doubleArrayValue = Array.isArray(
+              paramValue.double_array_value
+            )
+              ? paramValue.double_array_value
+              : paramValue.double_array_value.split(",");
             paramUpdate.value = {
               type: 8,
-              double_array_value: Array.isArray(doubleArrayValue)
-                ? doubleArrayValue
-                : doubleArrayValue
-                    .split(",")
-                    .map((item) => item.trim())
-                    .filter((item) => !isNaN(parseFloat(item))) // Validate doubles
-                    .map((item) => parseFloat(item)),
+              double_array_value: doubleArrayValue
+                .map((item) => (typeof item === "string" ? item.trim() : item))
+                .filter((item) => !isNaN(parseFloat(item)))
+                .map((item) => parseFloat(item)),
             };
             break;
           case 9: // String Array
+            const stringArrayValue = Array.isArray(
+              paramValue.string_array_value
+            )
+              ? paramValue.string_array_value
+              : paramValue.string_array_value.split(",");
             paramUpdate.value = {
               type: 9,
-              string_array_value: paramValue.string_array_value
-                .split(",")
-                .map((item) => item.trim())
-                .filter((item) => item.length > 0), // Validate non-empty strings
+              string_array_value: stringArrayValue
+                .map((item) =>
+                  typeof item === "string" ? item.trim() : item.toString()
+                )
+                .filter((item) => item.length > 0),
             };
             break;
-
           default:
             console.warn(`Unsupported parameter type: ${paramType}`);
             return null;

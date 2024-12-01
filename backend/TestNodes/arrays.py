@@ -2,86 +2,96 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rcl_interfaces.msg import SetParametersResult
-from std_msgs.msg import Float64MultiArray, Bool, Int32, String, UInt8
-import array
+from std_msgs.msg import (
+    Float64MultiArray, Int32MultiArray, Float32MultiArray,
+    Int8MultiArray, Int16MultiArray, Int64MultiArray,
+    UInt8MultiArray, UInt16MultiArray, UInt32MultiArray, UInt64MultiArray
+)
 
-class MultiParamNode(Node):
+class CompleteArrayNode(Node):
     def __init__(self):
-        super().__init__('multi_param_node')
-
-        # Declare parameters
-        self.declare_parameter('double_array_param', [1.0, 2.0, 3.0])
-        self.declare_parameter('int_param', 42)
-        self.declare_parameter('string_param', 'Hello, ROS 2!')
-
-        # Initialize publishers
-        self.double_array_publisher_ = self.create_publisher(Float64MultiArray, 'double_array_topic', 10)
-        self.int_publisher_ = self.create_publisher(Int32, 'int_topic', 10)
-        self.string_publisher_ = self.create_publisher(String, 'string_topic', 10)
-
+        super().__init__('complete_array_node')
+        
+        # Initialize publishers dictionary
+        self.array_publishers = {}
+        
+        # Declare parameters for all array types
+        self.declare_parameter('float64_array', [1.0, 2.0, 3.0])
+        self.declare_parameter('float32_array', [1.0, 2.0, 3.0])
+        self.declare_parameter('int8_array', [1, 2, 3])
+        self.declare_parameter('int16_array', [1, 2, 3])
+        self.declare_parameter('int32_array', [1, 2, 3])
+        self.declare_parameter('int64_array', [1, 2, 3])
+        self.declare_parameter('uint8_array', [1, 2, 3])
+        self.declare_parameter('uint16_array', [1, 2, 3])
+        self.declare_parameter('uint32_array', [1, 2, 3])
+        self.declare_parameter('uint64_array', [1, 2, 3])
+        
+        # Create publishers for all array types
+        self.array_publishers['float64'] = self.create_publisher(Float64MultiArray, 'float64_array', 10)
+        self.array_publishers['float32'] = self.create_publisher(Float32MultiArray, 'float32_array', 10)
+        self.array_publishers['int8'] = self.create_publisher(Int8MultiArray, 'int8_array', 10)
+        self.array_publishers['int16'] = self.create_publisher(Int16MultiArray, 'int16_array', 10)
+        self.array_publishers['int32'] = self.create_publisher(Int32MultiArray, 'int32_array', 10)
+        self.array_publishers['int64'] = self.create_publisher(Int64MultiArray, 'int64_array', 10)
+        self.array_publishers['uint8'] = self.create_publisher(UInt8MultiArray, 'uint8_array', 10)
+        self.array_publishers['uint16'] = self.create_publisher(UInt16MultiArray, 'uint16_array', 10)
+        self.array_publishers['uint32'] = self.create_publisher(UInt32MultiArray, 'uint32_array', 10)
+        self.array_publishers['uint64'] = self.create_publisher(UInt64MultiArray, 'uint64_array', 10)
+        
         # Timer to periodically publish messages
         self.timer = self.create_timer(1.0, self.publish_parameters)
-
+        
         # Set up parameter callback
         self.add_on_set_parameters_callback(self.parameter_callback)
-
-        # Log the initial parameter values
+        
+        # Log initial parameters
         self.log_initial_params()
 
     def log_initial_params(self):
-        double_array = self.get_parameter('double_array_param').get_parameter_value().double_array_value
-        int_value = self.get_parameter('int_param').get_parameter_value().integer_value
-        string_value = self.get_parameter('string_param').get_parameter_value().string_value
-
-        self.get_logger().info(f"Initial double_array_param: {list(double_array)}")
-        self.get_logger().info(f"Initial int_param: {int_value}")
-        self.get_logger().info(f"Initial string_param: {string_value}")
+        for param_name in self.array_publishers.keys():
+            param_value = self.get_parameter(f'{param_name}_array').get_parameter_value()
+            if param_name.startswith(('float', 'double')):
+                value = param_value.double_array_value
+            else:
+                value = param_value.integer_array_value
+            self.get_logger().info(f"Initial {param_name}_array: {list(value)}")
 
     def publish_parameters(self):
-        # Publish each parameter type
-        double_array = self.get_parameter('double_array_param').get_parameter_value().double_array_value
-        int_value = self.get_parameter('int_param').get_parameter_value().integer_value
-        string_value = self.get_parameter('string_param').get_parameter_value().string_value
+        for param_type, publisher in self.array_publishers.items():
+            param_name = f'{param_type}_array'
+            param_value = self.get_parameter(param_name).get_parameter_value()
+            
+            # Create appropriate message type
+            msg_type = publisher.msg_type
+            msg = msg_type()
 
-        # Publish double array
-        msg = Float64MultiArray()
-        msg.data = list(double_array)
-        self.double_array_publisher_.publish(msg)
-
-        # Publish int value
-        int_msg = Int32()
-        int_msg.data = int_value
-        self.int_publisher_.publish(int_msg)
-
-        # Publish string value
-        string_msg = String()
-        string_msg.data = string_value
-        self.string_publisher_.publish(string_msg)
-
-        # Log the published values
-        self.get_logger().info(f"Published double_array_param: {list(double_array)}")
-        self.get_logger().info(f"Published int_param: {int_value}")
-        self.get_logger().info(f"Published string_param: {string_value}")
+            # Handle all other types
+            if param_type.startswith(('float', 'double')):
+                value = param_value.double_array_value
+            else:
+                value = param_value.integer_array_value
+            msg.data = list(value)
+            
+            # Publish message
+            publisher.publish(msg)
+            self.get_logger().info(f"Published {param_name}: {list(value)}")
 
     def parameter_callback(self, params):
         for param in params:
-            if param.name == 'double_array_param' and param.type_ == Parameter.Type.DOUBLE_ARRAY:
-                updated_array = param.value
-                self.get_logger().info(f"Parameter 'double_array_param' updated to: {list(updated_array)}")
-            elif param.name == 'int_param' and param.type_ == Parameter.Type.INTEGER:
-                self.get_logger().info(f"Parameter 'int_param' updated to: {param.value}")
-            elif param.name == 'string_param' and param.type_ == Parameter.Type.STRING:
-                self.get_logger().info(f"Parameter 'string_param' updated to: {param.value}")
+            param_base = param.name.replace('_array', '')
+            if param_base in self.array_publishers:
+                if param.type_ in [Parameter.Type.DOUBLE_ARRAY, Parameter.Type.INTEGER_ARRAY]:
+                    self.get_logger().info(f"Parameter '{param.name}' updated to: {list(param.value)}")
         return SetParametersResult(successful=True)
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MultiParamNode()
-
+    node = CompleteArrayNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        node.get_logger().info("MultiParamNode has been stopped.")
+        node.get_logger().info("CompleteArrayNode has been stopped.")
     finally:
         node.destroy_node()
         rclpy.shutdown()
