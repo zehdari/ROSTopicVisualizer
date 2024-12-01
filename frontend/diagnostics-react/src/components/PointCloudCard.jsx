@@ -4,7 +4,7 @@ import { RefreshCcw } from "lucide-react";
 import FastPointCloudViewer from "./PointCloudViewer";
 import "../styles/PointCloudCard.css";
 
-const PointCloudCard = ({ topic, onRemovePointCloud }) => {
+const PointCloudCard = ({ topic, onRemovePointCloud, headerProps }) => {
   const resetCameraRef = useRef(null);
 
   const handleReset = (resetFn) => {
@@ -33,7 +33,9 @@ const PointCloudCard = ({ topic, onRemovePointCloud }) => {
           <FaTimes />
         </button>
       </div>
-      <div className="graph-header">
+      <div {...headerProps}>
+        {" "}
+        {/* Apply header props here */}
         <h3>{topic}</h3>
       </div>
       <div className="pointcloud-container">

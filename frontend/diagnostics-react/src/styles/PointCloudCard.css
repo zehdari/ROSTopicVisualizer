@@ -1,8 +1,24 @@
 /* PointCloudCard.css */
-.pointcloud-card {
-  max-width: 475px;
+.sortable-card-wrapper {
+  display: flex;
+  min-width: 475px;
   height: 380px;
+}
+
+.pointcloud-card {
+  position: relative;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   margin: 5px;
+  padding: 10px;
+  box-shadow: 0 2px 5px var(--shadow-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+  width: 100%;
+  min-width: 475px;
+  box-sizing: border-box;
+  height: 380px;
   display: flex;
   flex-direction: column;
 }
@@ -18,48 +34,32 @@
   flex: 1 1 auto;
 }
 
-.pointcloud-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
+.graph-header {
+  width: 100%;
+  padding: 8px 0;
+  cursor: grab;
 }
 
-.header-content {
+/* Rest of your existing styles remain the same */
+.pointcloud-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.topic-title {
-  font-size: 16px;
-  font-weight: 500;
   color: var(--text-color);
-  margin: 0;
 }
 
-.button-group {
+.graph-card-buttons {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  justify-content: right;
+  align-items: right;
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.control-button {
-  padding: 4px;
-  border-radius: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-color);
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.refresh-button:hover {
-  background-color: var(--hover-bg);
-}
-
-.remove-button:hover {
-  background-color: var(--danger-bg);
-  color: var(--danger-text);
-}
-
-.pointcloud-content {
-  padding: 0;
+.pointcloud-card:hover .graph-card-buttons {
+  opacity: 1;
 }

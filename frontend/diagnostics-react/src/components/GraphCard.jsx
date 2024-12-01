@@ -48,7 +48,7 @@ const isMultiArrayType = (topicConfig) => {
   );
 };
 
-const GraphCard = ({ topicConfig, onRemoveGraph }) => {
+const GraphCard = ({ topicConfig, onRemoveGraph, headerProps }) => {
   const [data, setData] = useState([]);
   const [graphKeys, setGraphKeys] = useState(topicConfig.graphKeys || []);
   const [frequency, setFrequency] = useState(0);
@@ -212,7 +212,9 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
         </button>
       </div>
 
-      <div className="graph-header">
+      <div {...headerProps}>
+        {" "}
+        {/* Apply all header props here */}
         <h3>{topicConfig.name}</h3>
         <div className="frequency-display">
           {frequency > 0 ? `${frequency} Hz` : "0 Hz"}

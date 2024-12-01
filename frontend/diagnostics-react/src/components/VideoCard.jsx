@@ -4,7 +4,7 @@ import { FaTimes } from "react-icons/fa";
 import { RefreshCcw } from "lucide-react";
 import { NETWORK_CONFIG } from "../config/networkConfig";
 
-const VideoCard = ({ topic, port, onRemoveVideo }) => {
+const VideoCard = ({ topic, port, onRemoveVideo, headerProps }) => {
   const [streamStarted, setStreamStarted] = useState(false);
   const [status, setStatus] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -19,24 +19,20 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
     };
   }, [topic, port]);
 
-  // Add timeout effect to trigger refresh after stream starts
   useEffect(() => {
     if (streamStarted) {
       const timer = setTimeout(() => {
         setRefreshTrigger((prev) => prev + 1);
-      }, 1000); // Increased timeout to 1 second to give more time for initialization
-
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [streamStarted]);
 
   const startStream = async () => {
     if (isStartingStream) return;
-
     try {
       setIsStartingStream(true);
       setStatus("Starting video stream...");
-
       const response = await fetch(
         `${NETWORK_CONFIG.FLASK_SERVER_URL}/start-video-server`,
         {
@@ -47,9 +43,7 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
           body: JSON.stringify({ topic, port }),
         }
       );
-
       const data = await response.json();
-
       if (response.ok) {
         setStreamStarted(true);
         setStatus("");
@@ -67,7 +61,6 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
 
   const stopStream = async () => {
     if (!streamStarted) return;
-
     try {
       await fetch(`${NETWORK_CONFIG.FLASK_SERVER_URL}/stop-video-server`, {
         method: "POST",
@@ -114,7 +107,8 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
           <FaTimes />
         </button>
       </div>
-      <div className="video-header graph-header">
+      <div {...headerProps}>
+        {" "}
         <h3>{topic}</h3>
       </div>
       <p>{status}</p>

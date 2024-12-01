@@ -1,4 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableCard } from "./SortableCard";
 import GraphCard from "./GraphCard";
 import VideoCard from "./VideoCard";
 import PointCloudCard from "./PointCloudCard";
@@ -13,27 +28,40 @@ const RealtimeGraph = ({
   updateVisibleVideos,
   updateVisiblePointClouds,
 }) => {
-  // Combine graphs, videos, and point clouds into a single array with type and timestamp
-  const allCards = [
-    ...visibleTopics.map((topic) => ({
-      type: "graph",
-      data: topic,
-      timestamp: topic.timestamp || Date.now(),
-      key: topic.name,
-    })),
-    ...visibleVideos.map((video) => ({
-      type: "video",
-      data: video,
-      timestamp: video.timestamp || Date.now(),
-      key: video.topic,
-    })),
-    ...visiblePointClouds.map((pointCloud) => ({
-      type: "pointcloud",
-      data: pointCloud,
-      timestamp: pointCloud.timestamp || Date.now(),
-      key: pointCloud.name,
-    })),
-  ].sort((a, b) => a.timestamp - b.timestamp);
+  const [items, setItems] = useState([]);
+
+  // Update items whenever props change
+  useEffect(() => {
+    const newItems = [
+      ...visibleTopics.map((topic) => ({
+        type: "graph",
+        data: topic,
+        timestamp: topic.timestamp || Date.now(),
+        id: `graph-${topic.name}`,
+      })),
+      ...visibleVideos.map((video) => ({
+        type: "video",
+        data: video,
+        timestamp: video.timestamp || Date.now(),
+        id: `video-${video.topic}`,
+      })),
+      ...visiblePointClouds.map((pointCloud) => ({
+        type: "pointcloud",
+        data: pointCloud,
+        timestamp: pointCloud.timestamp || Date.now(),
+        id: `pointcloud-${pointCloud.name}`,
+      })),
+    ].sort((a, b) => a.timestamp - b.timestamp);
+
+    setItems(newItems);
+  }, [visibleTopics, visibleVideos, visiblePointClouds]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleRemoveGraph = (topicName) => {
     const updatedTopics = visibleTopics.filter(
@@ -77,38 +105,65 @@ const RealtimeGraph = ({
     updateVisiblePointClouds(updatedPointClouds);
   };
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setItems((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const renderCard = (card) => {
+    switch (card.type) {
+      case "video":
+        return (
+          <VideoCard
+            topic={card.data.topic}
+            port={card.data.port}
+            onRemoveVideo={handleRemoveVideo}
+          />
+        );
+      case "pointcloud":
+        return (
+          <PointCloudCard
+            topic={card.data.name}
+            onRemovePointCloud={handleRemovePointCloud}
+          />
+        );
+      default:
+        return (
+          <GraphCard
+            topicConfig={card.data}
+            onRemoveGraph={handleRemoveGraph}
+          />
+        );
+    }
+  };
+
   return (
     <div className="realtime-graph-container">
-      <div className="visible-graphs">
-        {allCards.map((card) => {
-          if (card.type === "video") {
-            return (
-              <VideoCard
-                key={card.key}
-                topic={card.data.topic}
-                port={card.data.port}
-                onRemoveVideo={handleRemoveVideo}
-              />
-            );
-          } else if (card.type === "pointcloud") {
-            return (
-              <PointCloudCard
-                key={card.key}
-                topic={card.data.name}
-                onRemovePointCloud={handleRemovePointCloud}
-              />
-            );
-          } else {
-            return (
-              <GraphCard
-                key={card.key}
-                topicConfig={card.data}
-                onRemoveGraph={handleRemoveGraph}
-              />
-            );
-          }
-        })}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={items.map((item) => item.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="visible-graphs">
+            {items.map((card) => (
+              <SortableCard key={card.id} id={card.id}>
+                {renderCard(card)}
+              </SortableCard>
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 };
