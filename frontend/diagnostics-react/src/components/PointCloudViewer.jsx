@@ -121,9 +121,8 @@ const PointCloudViewer = ({
   const reglRef = useRef(null);
   const animationFrameRef = useRef();
   const keysPressed = useRef({});
+  const pointDataRef = useRef(null); // Add this line to store point cloud data
   const [isFocused, setIsFocused] = useState(false);
-
-  // Modified camera reference to include rotation speed
   const cameraRef = useRef({ ...DEFAULT_CAMERA });
 
   const pointCloudMessage = useRosTopic(
@@ -144,6 +143,8 @@ const PointCloudViewer = ({
   });
 
   const resetCamera = () => {
+    if (!pointDataRef.current) return; // Add this check
+
     // Reset camera to default position and orientation
     cameraRef.current = {
       ...DEFAULT_CAMERA,
@@ -154,7 +155,7 @@ const PointCloudViewer = ({
       up: [...DEFAULT_CAMERA.up],
     };
 
-    // Reset touch states
+    // Reset touch and mouse states
     touchRef.current = {
       isRotating: false,
       isPanning: false,
@@ -164,48 +165,43 @@ const PointCloudViewer = ({
       lastCenter: { x: 0, y: 0 },
     };
 
-    // Reset mouse states
     isDraggingRef.current = false;
     lastMouseRef.current = { x: 0, y: 0 };
-
-    // Reset keyboard states
     keysPressed.current = {};
 
     // Force a camera position update
     updateCameraPosition();
 
     // Force a re-render if needed
-    if (reglRef.current && drawCommandRef.current) {
+    if (reglRef.current && drawCommandRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
-      if (canvas) {
-        const projection = mat4.perspective(
-          mat4.create(),
-          Math.PI / 4,
-          canvas.width / canvas.height,
-          0.1,
-          100.0
-        );
+      const projection = mat4.perspective(
+        mat4.create(),
+        Math.PI / 4,
+        canvas.width / canvas.height,
+        0.1,
+        100.0
+      );
 
-        const view = mat4.lookAt(
-          mat4.create(),
-          cameraRef.current.eye,
-          cameraRef.current.center,
-          cameraRef.current.up
-        );
+      const view = mat4.lookAt(
+        mat4.create(),
+        cameraRef.current.eye,
+        cameraRef.current.center,
+        cameraRef.current.up
+      );
 
-        reglRef.current.clear({
-          color: [0.1, 0.1, 0.1, 1],
-          depth: 1,
-        });
+      reglRef.current.clear({
+        color: [0.1, 0.1, 0.1, 1],
+        depth: 1,
+      });
 
-        drawCommandRef.current({
-          positions: pointData?.positions,
-          colors: pointData?.colors,
-          count: pointData?.count,
-          view,
-          projection,
-        });
-      }
+      drawCommandRef.current({
+        positions: pointDataRef.current.positions,
+        colors: pointDataRef.current.colors,
+        count: pointDataRef.current.count,
+        view,
+        projection,
+      });
     }
   };
   // Pass the resetCamera function to the onReset callback
@@ -525,8 +521,11 @@ const PointCloudViewer = ({
     if (!pointCloudMessage || !reglRef.current || !drawCommandRef.current)
       return;
 
-    const pointData = parsePointCloud2(pointCloudMessage);
-    if (!pointData) return;
+    const newPointData = parsePointCloud2(pointCloudMessage);
+    if (!newPointData) return;
+
+    // Store the point cloud data in the ref
+    pointDataRef.current = newPointData;
 
     const projection = mat4.perspective(
       mat4.create(),
@@ -537,7 +536,7 @@ const PointCloudViewer = ({
     );
 
     const render = () => {
-      updateCameraPosition(); // Update camera position each frame
+      updateCameraPosition();
 
       const view = mat4.lookAt(
         mat4.create(),
@@ -552,9 +551,9 @@ const PointCloudViewer = ({
       });
 
       drawCommandRef.current({
-        positions: pointData.positions,
-        colors: pointData.colors,
-        count: pointData.count,
+        positions: pointDataRef.current.positions,
+        colors: pointDataRef.current.colors,
+        count: pointDataRef.current.count,
         view,
         projection,
       });
@@ -580,7 +579,7 @@ const PointCloudViewer = ({
         height={300}
         style={{
           display: "block",
-          touchAction: "none", // Prevent default touch behaviors
+          touchAction: "none",
         }}
         tabIndex={0}
         onFocus={() => setIsFocused(true)}

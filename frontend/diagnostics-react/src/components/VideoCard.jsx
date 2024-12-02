@@ -1,7 +1,6 @@
+// VideoCard.jsx
 import React, { useState, useEffect } from "react";
-import "../styles/VideoCard.css";
-import { FaTimes } from "react-icons/fa";
-import { RefreshCcw } from "lucide-react";
+import BaseCard from "./BaseCard";
 import { NETWORK_CONFIG } from "../config/networkConfig";
 
 const VideoCard = ({ topic, port, onRemoveVideo }) => {
@@ -19,24 +18,20 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
     };
   }, [topic, port]);
 
-  // Add timeout effect to trigger refresh after stream starts
   useEffect(() => {
     if (streamStarted) {
       const timer = setTimeout(() => {
         setRefreshTrigger((prev) => prev + 1);
-      }, 1000); // Increased timeout to 1 second to give more time for initialization
-
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [streamStarted]);
 
   const startStream = async () => {
     if (isStartingStream) return;
-
     try {
       setIsStartingStream(true);
       setStatus("Starting video stream...");
-
       const response = await fetch(
         `${NETWORK_CONFIG.FLASK_SERVER_URL}/start-video-server`,
         {
@@ -47,9 +42,7 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
           body: JSON.stringify({ topic, port }),
         }
       );
-
       const data = await response.json();
-
       if (response.ok) {
         setStreamStarted(true);
         setStatus("");
@@ -67,7 +60,6 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
 
   const stopStream = async () => {
     if (!streamStarted) return;
-
     try {
       await fetch(`${NETWORK_CONFIG.FLASK_SERVER_URL}/stop-video-server`, {
         method: "POST",
@@ -94,39 +86,25 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
   };
 
   return (
-    <div className="video-card graph-card">
-      <div className="video-card-buttons graph-card-buttons">
-        <button
-          className="settings-video-btn settings-graph-btn"
-          title="Refresh Stream"
-          onClick={handleRefresh}
-          disabled={isStartingStream}
-        >
-          <RefreshCcw size={16} className="refresh-icon" />
-        </button>
-        <button
-          onClick={() => onRemoveVideo(topic)}
-          className="remove-video-btn remove-graph-btn"
-          title="Remove Video"
-        >
-          <FaTimes />
-        </button>
-      </div>
-      <div className="video-header graph-header">
-        <h3>{topic}</h3>
-      </div>
-      <p>{status}</p>
-      {streamStarted && (
-        <div className="video-container">
+    <BaseCard
+      title={topic}
+      onRemove={() => onRemoveVideo(topic)}
+      onRefresh={handleRefresh}
+      showRefresh={true}
+      className="video-card"
+      status={status}
+    >
+      <div className="video-content-wrapper">
+        {streamStarted && (
           <img
             key={`${refreshTrigger}-${topic}-${port}`}
             src={getImageSrc()}
             alt="Live Feed"
             className="video-stream"
           />
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </BaseCard>
   );
 };
 

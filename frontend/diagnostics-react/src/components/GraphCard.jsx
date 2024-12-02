@@ -1,4 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import BaseCard from "./BaseCard";
+import "../styles/GraphCard.css";
+import { FaSave, FaTimes } from "react-icons/fa";
+import { useRosTopic } from "../utils/useRosTopic";
 import {
   LineChart,
   Line,
@@ -9,14 +13,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { useRosTopic } from "../utils/useRosTopic";
-import { FaCog, FaSave, FaTimes } from "react-icons/fa";
 
 const frequencyWindow = 5;
 const frequencyTimeout = 5000;
 
 const getCSSColorVariables = () => {
-  const styles = getComputedStyle(document.documentElement);
   const colorVars =
     Array.from(document.styleSheets)
       .flatMap((sheet) => {
@@ -194,31 +195,17 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
   };
 
   return (
-    <div className="graph-card">
-      <div className="graph-card-buttons">
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="settings-graph-btn"
-          title="Settings"
-        >
-          <FaCog />
-        </button>
-        <button
-          onClick={() => onRemoveGraph(topicConfig.name)}
-          className="remove-graph-btn"
-          title="Remove Graph"
-        >
-          <FaTimes />
-        </button>
-      </div>
-
-      <div className="graph-header">
-        <h3>{topicConfig.name}</h3>
+    <BaseCard
+      title={topicConfig.name}
+      onRemove={() => onRemoveGraph(topicConfig.name)}
+      onSettings={() => setIsSettingsOpen(true)}
+      showSettings={true}
+      headerContent={
         <div className="frequency-display">
           {frequency > 0 ? `${frequency} Hz` : "0 Hz"}
         </div>
-      </div>
-
+      }
+    >
       <div style={{ width: "100%", maxWidth: "450px", height: "300px" }}>
         <ResponsiveContainer>
           <LineChart
@@ -286,7 +273,7 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
           </div>
         </div>
       )}
-    </div>
+    </BaseCard>
   );
 };
 

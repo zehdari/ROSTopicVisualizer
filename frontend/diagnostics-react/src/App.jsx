@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import RealtimeGraph from "./components/RealtimeGraph";
+import RealtimeGraph from "./components/CardContainer";
 import TopicsTable from "./components/TopicsTable";
 import TfTree from "./components/TfTree";
 import TerminalComponent from "./components/Terminal";

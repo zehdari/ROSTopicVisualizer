@@ -1,0 +1,55 @@
+/* Graph-specific styles */
+.recharts-wrapper {
+  max-width: 100%;
+  height: 300px;
+  box-sizing: border-box;
+}
+
+.frequency-display {
+  font-size: 0.9em;
+  color: var(--highlight-color);
+}
+
+.custom-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Tooltip Styles */
+.custom-tooltip {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 5px var(--shadow-color);
+  font-size: 0.9em;
+  max-width: 200px;
+}
+
+.tooltip-time {
+  font-weight: bold;
+}
+
+.tooltip-entry {
+  margin: 5px 0;
+}
+
+.tooltip-entry strong {
+  color: var(--highlight-color);
+}
+
+/* Settings Modal Specific Overrides */
+.save-btn {
+  background-color: var(--save-btn-bg, #4caf50);
+  color: var(--save-btn-color, #fff);
+}
+
+.save-btn:hover {
+  background-color: var(--save-btn-hover-bg, #45a049);
+}

@@ -1,0 +1,47 @@
+/* Container Layout */
+.card-container {
+  display: flex;
+  flex-direction: row-reverse;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+  flex: 1 1 auto;
+  margin-bottom: 50px;
+  justify-content: center;
+}
+
+/* Cards Grid */
+.cards-grid {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  align-items: flex-start;
+  padding: 5px;
+}
+
+/* Hidden Cards Sidebar */
+.hidden-cards-sidebar {
+  width: 0px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  padding: 10px;
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.hidden-card-item {
+  padding: 8px;
+  margin: 10px;
+  background-color: var(--card-bg);
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--text-color);
+  transition: background-color 0.3s;
+}
+
+.hidden-card-item:hover {
+  background-color: var(--hover-bg);
+}

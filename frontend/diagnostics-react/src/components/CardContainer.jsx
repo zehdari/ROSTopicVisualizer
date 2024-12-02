@@ -2,10 +2,10 @@ import React from "react";
 import GraphCard from "./GraphCard";
 import VideoCard from "./VideoCard";
 import PointCloudCard from "./PointCloudCard";
-import "../styles/RealtimeGraph.css";
+import "../styles/CardContainer.css";
 import { NETWORK_CONFIG } from "../config/networkConfig";
 
-const RealtimeGraph = ({
+const CardContainer = ({
   visibleTopics,
   visibleVideos,
   visiblePointClouds,
@@ -76,8 +76,8 @@ const RealtimeGraph = ({
   };
 
   return (
-    <div className="realtime-graph-container">
-      <div className="visible-graphs">
+    <div className="card-container">
+      <div className="cards-grid">
         {allCards.map((card) => {
           if (card.type === "video") {
             return (
@@ -111,4 +111,4 @@ const RealtimeGraph = ({
   );
 };
 
-export default RealtimeGraph;
+export default CardContainer;
