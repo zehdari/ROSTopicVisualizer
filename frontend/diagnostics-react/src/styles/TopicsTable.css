@@ -82,6 +82,7 @@
 /* Styling for the details row */
 .topic-details-row {
   background-color: var(--card-bg);
+  transition: background-color 0.3s;
 }
 
 /* Container for topic details content */
