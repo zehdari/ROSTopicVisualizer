@@ -28,7 +28,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
       });
 
       newRos.on("connection", () => {
-        console.log("Connected to ROS websocket");
         setRos(newRos);
 
         // Fetch nodes logic (similar to previous implementation)
@@ -74,9 +73,9 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
   useEffect(() => {
     if (!ros || !selectedNode) return;
 
-    let isCancelled = false; // Flag to track cancellation
-    setIsLoadingParams(true); // Start loading
-    setShowSpinner(false); // Reset spinner visibility
+    let isCancelled = false;
+    setIsLoadingParams(true);
+    setShowSpinner(false);
 
     // Initialize a timer to show the spinner after 500ms
     const spinnerTimer = setTimeout(() => {
@@ -103,8 +102,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
           ? listResult.result.names
           : listResult.names || [];
 
-        console.log(`Parameters for ${selectedNode}:`, paramNames);
-
         if (!isCancelled) {
           setNodeParams(Array.isArray(paramNames) ? paramNames : []);
           setParamValues({});
@@ -115,9 +112,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
 
         for (const param of paramNames) {
           if (isCancelled) {
-            console.log(
-              `Fetch operation cancelled. Skipping parameter '${param}'.`
-            );
             break;
           }
 
@@ -132,8 +126,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
             const getResult = await new Promise((resolve, reject) => {
               getParamService.callService(getRequest, resolve, reject);
             });
-
-            console.log(`Result for parameter ${param}:`, getResult);
 
             const paramValue = getResult?.result
               ? getResult.result.values[0]
@@ -177,10 +169,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
 
         if (!isCancelled) {
           setParamValues(allParamValues);
-        } else {
-          console.log(
-            `Discarded fetched parameters for '${selectedNode}' as the operation was cancelled.`
-          );
         }
       } catch (err) {
         console.error(
@@ -525,8 +513,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
       return;
     }
 
-    console.log("Updated Parameters:", updatedParams);
-
     for (const param of updatedParams) {
       const setParamService = new Service({
         ros: ros,
@@ -540,9 +526,7 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
         await new Promise((resolve, reject) => {
           setParamService.callService(request, resolve, reject);
         });
-        console.log(`Parameter '${param.name}' updated successfully`);
       } catch (err) {
-        console.error(`Failed to update parameter '${param.name}':`, err);
         setError(
           `Failed to update parameter '${param.name}': ${err.message || err}`
         );

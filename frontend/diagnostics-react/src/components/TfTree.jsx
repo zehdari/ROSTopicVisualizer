@@ -25,19 +25,16 @@ const TfTree = () => {
     setRos(rosInstance);
 
     rosInstance.on("error", (error) => {
-      console.error("Error connecting to ROS:", error);
       setConnected(false);
     });
 
     rosInstance.on("connection", () => {
-      console.log("Connected to ROS!");
       setConnected(true);
       // Start listening automatically when connected
       setIsListening(true);
     });
 
     rosInstance.on("close", () => {
-      console.log("Connection to ROS closed.");
       setConnected(false);
     });
 
@@ -93,8 +90,6 @@ const TfTree = () => {
       const buffer = [];
 
       const processTransforms = (message) => {
-        console.log("Raw transforms:", message.transforms);
-
         const uniqueTransforms = new Set();
 
         message.transforms.forEach((tf) => {
@@ -147,8 +142,6 @@ const TfTree = () => {
   }, [ros, connected, isListening]);
 
   const buildTreeData = (transforms) => {
-    console.log("Building tree from transforms:", transforms);
-
     const createTreeNode = (frameId) => {
       if (!transforms[frameId]) return null;
 

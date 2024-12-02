@@ -1,16 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service, Topic } from "roslib";
 import "../styles/TopicsTable.css";
-import {
-  RefreshCcw,
-  Settings,
-  Expand,
-  Minimize,
-  Terminal,
-  TreeDeciduous,
-} from "lucide-react";
-import SearchBar from "./SearchBar";
+import NodeRow from "./NodeRow";
+import TopicRow from "./TopicRow";
 import ParamPanel from "./ParamPanel";
+import TopicDetails from "./TopicDetails";
+import TableHeader from "./TableHeader";
 import { TOPICS_CONFIG, IGNORED_TOPICS } from "../config/topicsConfig";
 import { TOPIC_TYPES } from "../config/topicTypes";
 import { NETWORK_CONFIG } from "../config/networkConfig";
@@ -59,7 +54,6 @@ const TopicsTable = ({
     });
 
     newRos.on("connection", () => {
-      console.log("Connected to ROS websocket");
 
       // Create service clients for rosapi/nodes and rosapi/node_details
       const nodesService = new Service({
@@ -85,7 +79,6 @@ const TopicsTable = ({
         {},
         (nodesResponse) => {
           const nodeNames = nodesResponse.nodes;
-          console.log("Fetched Nodes:", nodeNames);
 
           // For each node, fetch its details
           const nodeDetailsPromises = nodeNames.map((nodeName) => {
@@ -126,7 +119,6 @@ const TopicsTable = ({
             const uniquePublishingTopics = Array.from(
               new Set(allPublishingTopics)
             );
-            console.log("Unique Publishing Topics:", uniquePublishingTopics);
 
             // Fetch topic types
             const topicTypePromises = uniquePublishingTopics.map(
@@ -161,7 +153,6 @@ const TopicsTable = ({
                 acc[topic.name] = topic.type;
                 return acc;
               }, {});
-              console.log("Topic Type Map:", topicTypeMap);
 
               // Group topics by node based on publishing topics
               const grouped = validNodesDetails.reduce((acc, nodeDetail) => {
@@ -179,7 +170,6 @@ const TopicsTable = ({
                 return acc;
               }, {});
 
-              console.log("Grouped Topics by Node:", grouped);
 
               setTopicsByNode(grouped);
               setLoading(false);
@@ -187,7 +177,6 @@ const TopicsTable = ({
           });
         },
         (error) => {
-          console.error("Error fetching nodes:", error);
           setLoading(false);
         }
       );
@@ -204,7 +193,6 @@ const TopicsTable = ({
 
   useEffect(() => {
     fetchTopicsAndNodes();
-    console.log(`Visible Videos: ${visibleVideos}`);
 
     return () => {
       if (rosRef.current) {
@@ -356,7 +344,7 @@ const TopicsTable = ({
       onAddGraph(existingTopicConfig);
       return;
     }
-    console.log(topic);
+
 
     // Check if the topic's type is in TOPIC_TYPES
     const typeConfig = TOPIC_TYPES[topic.type];
@@ -423,42 +411,17 @@ const TopicsTable = ({
 
   return (
     <div className="topics-table-container">
-      <div className="search-and-refresh-container">
-        <div className="search-bar-wrapper">
-          <SearchBar setFilter={setFilter} />
-        </div>
-        <div className="table-action-buttons">
-          <button
-            onClick={fetchTopicsAndNodes}
-            className="refresh-topics-btn"
-            disabled={loading}
-            aria-label="Refresh topics"
-          >
-            <RefreshCcw size={16} className="refresh-icon" />
-          </button>
-          <button
-            onClick={toggleAllNodes}
-            className="expand-collapse-btn"
-            aria-label={hasExpandedNodes ? "Collapse All" : "Expand All"}
-          >
-            {hasExpandedNodes ? <Minimize size={16} /> : <Expand size={16} />}
-          </button>
-          <button
-            onClick={onToggleTerminal}
-            className="terminal-toggle-btn"
-            aria-label={isTerminalOpen ? "Close Terminal" : "Open Terminal"}
-          >
-            <Terminal size={16} />
-          </button>
-          <button
-            onClick={onToggleTree}
-            className="tree-toggle-btn"
-            aria-label={isTreeOpen ? "Hide Tree" : "Show Tree"}
-          >
-            <TreeDeciduous size={16} />
-          </button>
-        </div>
-      </div>
+      <TableHeader
+        loading={loading}
+        onRefresh={fetchTopicsAndNodes}
+        hasExpandedNodes={hasExpandedNodes}
+        onToggleAllNodes={toggleAllNodes}
+        onToggleTerminal={onToggleTerminal}
+        onToggleTree={onToggleTree}
+        isTerminalOpen={isTerminalOpen}
+        isTreeOpen={isTreeOpen}
+        setFilter={setFilter}
+      />
 
       {loading ? (
         <div className="loading-indicator">Loading topics...</div>
@@ -469,27 +432,12 @@ const TopicsTable = ({
               {Object.entries(groupedFilteredTopics).map(
                 ([node, topics], nodeIndex) => (
                   <React.Fragment key={`node-${nodeIndex}`}>
-                    {/* Node Row */}
-                    <tr
-                      className="node-row"
-                      onClick={() => toggleNodeTopics(node)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <td colSpan="2">
-                        <strong>{node}</strong>
-                      </td>
-                      <td className="node-actions">
-                        <button
-                          onClick={(e) => toggleParamPanel(node, e)}
-                          className="params-btn"
-                          aria-label="View Node Parameters"
-                        >
-                          <Settings size={16} />
-                        </button>
-                      </td>
-                    </tr>
+                    <NodeRow
+                      node={node}
+                      onToggleNode={toggleNodeTopics}
+                      onToggleParams={toggleParamPanel}
+                    />
 
-                    {/* Parameter Panel */}
                     {openParamNodes[node] && (
                       <tr className="param-panel-row">
                         <td colSpan="3">
@@ -498,126 +446,44 @@ const TopicsTable = ({
                       </tr>
                     )}
 
-                    {/* Topics for the Node */}
-                    {expandedNodes[node] && (
-                      <>
-                        {topics.map((topic, topicIndex) => {
-                          // Check if the topic is in the configuration (TOPICS_CONFIG)
-                          const isConfigured =
-                            TOPICS_CONFIG.some(
-                              (configTopic) => configTopic.name === topic.name
-                            ) || topic.type in TOPIC_TYPES;
+                    {expandedNodes[node] &&
+                      topics.map((topic, topicIndex) => {
+                        const isConfigured =
+                          TOPICS_CONFIG.some(
+                            (configTopic) => configTopic.name === topic.name
+                          ) || topic.type in TOPIC_TYPES;
 
-                          return (
-                            <React.Fragment key={`topic-${topicIndex}`}>
-                              <tr
-                                className="topic-row hidden-graph-item"
-                                onClick={() => toggleTopicDetails(topic.name)}
-                              >
-                                <td className="topic-name">{topic.name}</td>
-                                <td>{topic.type}</td>
-                                <td>
-                                  {/* For regular graphs */}
-                                  {isConfigured &&
-                                    topic.type !==
-                                      "sensor_msgs/msg/PointCloud2" &&
-                                    !visibleTopics.some(
-                                      (visibleTopic) =>
-                                        visibleTopic.name === topic.name
-                                    ) && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAddGraph(topic);
-                                        }}
-                                        className="add-graph-btn"
-                                      >
-                                        +
-                                      </button>
-                                    )}
-                                  {/* For videos */}
-                                  {topic.type === "sensor_msgs/msg/Image" &&
-                                    !visibleVideos.some(
-                                      (visibleVideo) =>
-                                        visibleVideo.topic === topic.name
-                                    ) && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAddVideo(topic.name);
-                                        }}
-                                        className="add-graph-btn"
-                                      >
-                                        +
-                                      </button>
-                                    )}
-                                  {/* For point clouds */}
-                                  {topic.type ===
-                                    "sensor_msgs/msg/PointCloud2" &&
-                                    !visiblePointClouds.some(
-                                      (visiblePC) =>
-                                        visiblePC.name === topic.name
-                                    ) && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAddPointCloud(topic); // Use the new handler
-                                        }}
-                                        className="add-graph-btn"
-                                      >
-                                        +
-                                      </button>
-                                    )}
-                                </td>
-                              </tr>
-
-                              {/* Topic Details */}
-                              {openTopics[topic.name] && (
-                                <tr className="topic-details-row">
-                                  <td colSpan="3">
-                                    <div className="graph-card topic-details-content">
-                                      <p>
-                                        <strong>Type:</strong> {topic.type}
-                                      </p>
-                                      <p>
-                                        <strong>Frequency:</strong>{" "}
-                                        {openTopics[topic.name]?.frequency
-                                          ? `${
-                                              openTopics[topic.name].frequency
-                                            } Hz`
-                                          : "Calculating..."}
-                                      </p>
-                                      {openTopics[topic.name]?.latestMessage ? (
-                                        <>
-                                          <p>
-                                            <strong>Latest Message:</strong>
-                                          </p>
-                                          <pre>
-                                            {
-                                              openTopics[topic.name]
-                                                .latestMessage
-                                            }
-                                          </pre>
-                                        </>
-                                      ) : (
-                                        <p>Waiting for message...</p>
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
+                        return (
+                          <React.Fragment key={`topic-${topicIndex}`}>
+                            <TopicRow
+                              topic={topic}
+                              isConfigured={isConfigured}
+                              onToggleDetails={toggleTopicDetails}
+                              onAddGraph={handleAddGraph}
+                              onAddVideo={handleAddVideo}
+                              onAddPointCloud={handleAddPointCloud}
+                              isVisible={visibleTopics.some(
+                                (vt) => vt.name === topic.name
                               )}
-                            </React.Fragment>
-                          );
-                        })}
-                      </>
-                    )}
+                              isVideoVisible={visibleVideos.some(
+                                (vv) => vv.topic === topic.name
+                              )}
+                              isPointCloudVisible={visiblePointClouds.some(
+                                (vpc) => vpc.name === topic.name
+                              )}
+                            />
+
+                            {openTopics[topic.name] && (
+                              <TopicDetails
+                                topic={topic}
+                                topicDetails={openTopics[topic.name]}
+                              />
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                   </React.Fragment>
                 )
-              )}
-              {Object.keys(groupedFilteredTopics).length === 0 && (
-                <tr>
-                  <td colSpan="3">No topics found.</td>
-                </tr>
               )}
             </tbody>
           </table>

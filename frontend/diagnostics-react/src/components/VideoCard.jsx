@@ -76,9 +76,7 @@ const VideoCard = ({ topic, port, onRemoveVideo }) => {
         },
         body: JSON.stringify({ topic }),
       });
-    } catch (error) {
-      console.error("Error stopping stream:", error);
-    }
+    } catch (error) {}
   };
 
   const handleRefresh = async () => {

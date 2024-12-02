@@ -58,11 +58,9 @@ const RealtimeGraph = ({
         const updatedVideos = visibleVideos.filter(
           (video) => video.topic !== topic
         );
-        console.log(`Stopping video server for ${topic}`);
         updateVisibleVideos(updatedVideos);
       }
     } catch (error) {
-      console.error("Error stopping video server:", error);
       const updatedVideos = visibleVideos.filter(
         (video) => video.topic !== topic
       );
