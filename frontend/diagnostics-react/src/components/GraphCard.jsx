@@ -134,42 +134,82 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
     }
   }, [message, topicConfig, maxDataPoints]);
 
-  const handleLegendClick = (dataKey) => {
+  const handleLegendClick = React.useCallback((dataKey, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setActiveLines((prevActiveLines) => ({
       ...prevActiveLines,
       [dataKey]: !prevActiveLines[dataKey],
     }));
+  }, []);
+
+  const handleCancelClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setInputMaxDataPoints(maxDataPoints);
+    setIsSettingsOpen(false);
   };
 
-  const renderCustomLegend = (props) => {
-    const { payload } = props;
-
-    return (
-      <div className="custom-legend">
-        {payload.map((entry) => {
-          const { dataKey, color, value } = entry;
-          const isActive = activeLines[dataKey];
-          const style = {
-            display: "inline-block",
-            marginRight: 15,
-            cursor: "pointer",
-            textDecoration: isActive ? "none" : "line-through",
-            color: isActive ? color : "#AAA",
-            fontWeight: isActive ? "normal" : "bold",
-          };
-          return (
-            <span
-              key={dataKey}
-              style={style}
-              onClick={() => handleLegendClick(dataKey)}
-            >
-              {value}
-            </span>
-          );
-        })}
-      </div>
-    );
+  const handleSaveClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const parsedValue = parseInt(inputMaxDataPoints, 10);
+    if (!isNaN(parsedValue) && parsedValue > 0) {
+      setMaxDataPoints(parsedValue);
+      setIsSettingsOpen(false);
+    }
   };
+
+  const handleSettingsClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsSettingsOpen(true);
+  };
+
+  const handleRemoveClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onRemoveGraph(topicConfig.name);
+  };
+
+  const renderCustomLegend = React.useMemo(() => {
+    return (props) => {
+      const { payload } = props;
+      return (
+        <div className="custom-legend">
+          {payload.map((entry) => {
+            const { dataKey, color, value } = entry;
+            const isActive = activeLines[dataKey];
+            const style = {
+              display: "inline-block",
+              marginRight: 15,
+              cursor: "pointer",
+              textDecoration: isActive ? "none" : "line-through",
+              color: isActive ? color : "#AAA",
+              fontWeight: isActive ? "normal" : "bold",
+            };
+            return (
+              <span
+                key={dataKey}
+                style={style}
+                onClick={(e) => handleLegendClick(dataKey, e)}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  handleLegendClick(dataKey, e);
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                {value}
+              </span>
+            );
+          })}
+        </div>
+      );
+    };
+  }, [activeLines, handleLegendClick]);
 
   const customTooltip = ({ payload, label }) => {
     if (!payload || payload.length === 0) return null;
@@ -198,8 +238,8 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
   return (
     <BaseCard
       title={topicConfig.name}
-      onRemove={() => onRemoveGraph(topicConfig.name)}
-      onSettings={() => setIsSettingsOpen(true)}
+      onRemove={handleRemoveClick}
+      onSettings={handleSettingsClick}
       showSettings={true}
       headerContent={
         <div className="frequency-display">
@@ -250,24 +290,12 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
             </div>
             <div className="settings-modal-buttons">
               <button
-                onClick={() => {
-                  setInputMaxDataPoints(maxDataPoints);
-                  setIsSettingsOpen(false);
-                }}
+                onClick={handleCancelClick}
                 className="settings-modal-btn"
               >
                 <FaTimes /> Cancel
               </button>
-              <button
-                onClick={() => {
-                  const parsedValue = parseInt(inputMaxDataPoints, 10);
-                  if (!isNaN(parsedValue) && parsedValue > 0) {
-                    setMaxDataPoints(parsedValue);
-                    setIsSettingsOpen(false);
-                  }
-                }}
-                className="settings-modal-btn"
-              >
+              <button onClick={handleSaveClick} className="settings-modal-btn">
                 <FaSave /> Save
               </button>
             </div>

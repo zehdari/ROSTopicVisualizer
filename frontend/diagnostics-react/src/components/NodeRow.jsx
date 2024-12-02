@@ -1,12 +1,22 @@
-// NodeRow.jsx
 import React from "react";
 import { Settings } from "lucide-react";
 
 const NodeRow = ({ node, onToggleNode, onToggleParams }) => {
+  const handleParamsClick = (e) => {
+    e.preventDefault(); // Prevent default touch behavior
+    e.stopPropagation(); // Stop event from bubbling up
+    onToggleParams(node, e);
+  };
+
+  const handleRowClick = (e) => {
+    e.preventDefault(); // Prevent default touch behavior
+    onToggleNode(node);
+  };
+
   return (
     <tr
       className="node-row"
-      onClick={() => onToggleNode(node)}
+      onClick={handleRowClick}
       style={{ cursor: "pointer" }}
     >
       <td colSpan="2">
@@ -14,7 +24,7 @@ const NodeRow = ({ node, onToggleNode, onToggleParams }) => {
       </td>
       <td className="node-actions">
         <button
-          onClick={(e) => onToggleParams(node, e)}
+          onClick={handleParamsClick}
           className="params-btn"
           aria-label="View Node Parameters"
         >
