@@ -54,7 +54,6 @@ const TopicsTable = ({
     });
 
     newRos.on("connection", () => {
-
       // Create service clients for rosapi/nodes and rosapi/node_details
       const nodesService = new Service({
         ros: newRos,
@@ -78,7 +77,9 @@ const TopicsTable = ({
       nodesService.callService(
         {},
         (nodesResponse) => {
-          const nodeNames = nodesResponse.nodes;
+          const nodeNames = nodesResponse.nodes.sort((a, b) =>
+            a.toLowerCase().localeCompare(b.toLowerCase())
+          );
 
           // For each node, fetch its details
           const nodeDetailsPromises = nodeNames.map((nodeName) => {
@@ -169,7 +170,6 @@ const TopicsTable = ({
 
                 return acc;
               }, {});
-
 
               setTopicsByNode(grouped);
               setLoading(false);
@@ -345,7 +345,6 @@ const TopicsTable = ({
       return;
     }
 
-
     // Check if the topic's type is in TOPIC_TYPES
     const typeConfig = TOPIC_TYPES[topic.type];
     if (typeConfig) {
@@ -366,6 +365,17 @@ const TopicsTable = ({
 
   const handleAddVideo = (topic) => {
     onAddVideo({ topic, port: 9091, timestamp: Date.now() }); // Pass the topic and port to the parent component
+  };
+
+  const handleParamPanelRowClick = (e, node) => {
+    // Only close if clicking the row itself, not its children
+    if (e.target === e.currentTarget || e.target.tagName === "TD") {
+      e.stopPropagation();
+      setOpenParamNodes((prev) => ({
+        ...prev,
+        [node]: false,
+      }));
+    }
   };
 
   const toggleParamPanel = (node, e) => {
@@ -439,7 +449,10 @@ const TopicsTable = ({
                     />
 
                     {openParamNodes[node] && (
-                      <tr className="param-panel-row">
+                      <tr
+                        className="param-panel-row"
+                        onClick={(e) => handleParamPanelRowClick(e, node)}
+                      >
                         <td colSpan="3">
                           <ParamPanel initialSelectedNode={node} ros={ros} />
                         </td>

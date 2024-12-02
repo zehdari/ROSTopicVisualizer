@@ -8,9 +8,9 @@ from std_msgs.msg import (
     UInt8MultiArray, UInt16MultiArray, UInt32MultiArray, UInt64MultiArray
 )
 
-class CompleteArrayNode(Node):
+class ArrayNode(Node):
     def __init__(self):
-        super().__init__('complete_array_node')
+        super().__init__('array_node')
         
         # Initialize publishers dictionary
         self.array_publishers = {}
@@ -87,11 +87,11 @@ class CompleteArrayNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = CompleteArrayNode()
+    node = ArrayNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        node.get_logger().info("CompleteArrayNode has been stopped.")
+        node.get_logger().info("ArrayNode has been stopped.")
     finally:
         node.destroy_node()
         rclpy.shutdown()

@@ -134,9 +134,9 @@
 /* Button styling to ensure it's properly aligned within the cell */
 .add-graph-btn {
   position: absolute;
-  right: 36px; /* Adjust as needed */
+  right: 36px;
   top: 50%;
-  transform: translateY(-50%); /* Vertically center the button */
+  transform: translateY(-50%);
   background-color: transparent;
   color: var(--add-btn-color, white);
   border: 0px solid var(--border-color);
@@ -152,6 +152,7 @@
   background-color: var(--card-bg); /* Hover background */
   border-color: var(--border-color); /* Hover border */
   color: var(--add-btn-hover-color, #fff); /* Text color on hover */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .add-graph-btn:focus {
@@ -172,6 +173,7 @@
 /* Styling for topic rows to align with node rows */
 .topic-row {
   background-color: var(--card-bg); /* Changed from var(--subtable-bg, #fff) */
+  transition: background-color 0.3s, color 0.3s;
 }
 
 /* Indentation for topic names to align with node styling */
@@ -182,6 +184,7 @@
 /* Optional: Adjust hover effect for topic rows */
 .topic-row:hover {
   background-color: var(--hover-bg); /* Consistent hover effect */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Optional: Remove border from the last row */
@@ -261,7 +264,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-
 .search-bar-wrapper {
   flex-grow: 1;
   margin-right: 10px;
@@ -328,4 +330,5 @@
 
 .params-btn:hover {
   background-color: var(--hover-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

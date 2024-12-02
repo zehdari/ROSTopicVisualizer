@@ -72,7 +72,7 @@
 }
 
 .node-select:hover {
-  background-color: var(--hover-bg); /* Matches search bar hover background */
+  background-color: var(--hover-bg);
 }
 
 /* Placeholder styling for select (if applicable) */

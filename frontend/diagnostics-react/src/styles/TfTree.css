@@ -41,7 +41,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
   border-radius: 8px;
   overflow: auto;
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
 }
 
 .start-listening-btn {
@@ -50,6 +50,7 @@
   color: var(--text-color);
   border: none;
   border-radius: 5px;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -60,6 +61,7 @@
 
 .start-listening-btn:hover {
   background-color: var(--hover-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .node text {
@@ -78,4 +80,59 @@
 .rd3t-link {
   stroke: var(--hover-bg) !important;
   stroke-width: 2px !important;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-color);
+  font-size: 1.1rem;
+}
+
+.tooltip-container {
+  position: fixed;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  max-width: min(300px, calc(100vw - 40px));
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--tooltip-bg);
+  z-index: 1000;
+  left: clamp(20px, var(--x), calc(100vw - 20px));
+  top: clamp(20px, var(--y), calc(100vh - 20px));
+}
+
+.custom-tooltip {
+  color: var(--text-color);
+}
+
+.tooltip-entry {
+  margin-bottom: 8px;
+}
+
+.tooltip-entry:last-child {
+  margin-bottom: 0;
+}
+
+.tooltip-time {
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.rotation-columns {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.rotation-column {
+  flex: 1;
+}
+
+.rotation-header {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  color: var(--text-secondary);
 }

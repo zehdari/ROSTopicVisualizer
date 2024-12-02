@@ -32,11 +32,11 @@ const TerminalComponent = () => {
         borderWidth: 0,
         windowsMode: false,
         rendererType: "canvas",
-        allowTransparency: false, // Changed to false to prevent transparency issues
+        allowTransparency: false,
         scrollback: 1000,
-        cols: 80, // Set explicit initial columns
-        rows: 24, // Set explicit initial rows
-        convertEol: true, // Ensure proper line endings
+        cols: 80,
+        rows: 24,
+        convertEol: true,
         rightClickSelectsWord: true,
       });
 
@@ -47,91 +47,83 @@ const TerminalComponent = () => {
       xtermRef.current = term;
       fitAddonRef.current = fitAddon;
 
-      // Clear the terminal container before opening
       while (terminalRef.current.firstChild) {
         terminalRef.current.removeChild(terminalRef.current.firstChild);
       }
 
-      setTimeout(() => {
+      term.open(terminalRef.current);
+
+      // Ensure proper fitting after the terminal is mounted
+      requestAnimationFrame(() => {
         try {
-          term.open(terminalRef.current);
-
-          // Ensure the terminal is properly sized after opening
-          requestAnimationFrame(() => {
-            try {
-              fitAddon.fit();
-              term.refresh(0, term.rows - 1);
-            } catch (error) {
-              console.error("Error during initial fit:", error);
-            }
-          });
-
-          const socket = io(NETWORK_CONFIG.FLASK_SERVER_URL, {
-            reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-          });
-
-          socketRef.current = socket;
-
-          socket.on("connect", () => {
-            term.writeln("Connected to terminal server");
-          });
-
-          socket.on("connect_error", (error) => {
-            term.writeln(`Connection error: ${error.message}`);
-          });
-
-          socket.on("disconnect", () => {
-            term.writeln("Disconnected from terminal server");
-          });
-
-          socket.on("terminal_output", (data) => {
-            if (data && data.output) {
-              term.write(data.output);
-            }
-          });
-
-          term.onData((data) => {
-            if (socket.connected) {
-              socket.emit("terminal_input", { input: data });
-            }
-          });
-
-          // Debounced resize handler
-          let resizeTimeout;
-          const handleResize = () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-              try {
-                if (fitAddonRef.current && term.element) {
-                  fitAddonRef.current.fit();
-                  const { rows, cols } = term;
-                  if (socket.connected) {
-                    socket.emit("resize", { rows, cols });
-                  }
-                  term.refresh(0, term.rows - 1);
-                }
-              } catch (error) {
-                console.error("Error handling resize:", error);
-              }
-            }, 100);
-          };
-
-          window.addEventListener("resize", handleResize);
-
-          return () => {
-            clearTimeout(resizeTimeout);
-            window.removeEventListener("resize", handleResize);
-            if (socket.connected) {
-              socket.disconnect();
-            }
-            term.dispose();
-          };
+          fitAddon.fit();
+          term.refresh(0, term.rows - 1);
         } catch (error) {
-          console.error("Error opening terminal:", error);
+          console.error("Error during initial fit:", error);
         }
-      }, 100);
+      });
+
+      const socket = io(NETWORK_CONFIG.FLASK_SERVER_URL, {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
+
+      socketRef.current = socket;
+
+      socket.on("connect", () => {
+        term.writeln("Connected to terminal server");
+      });
+
+      socket.on("connect_error", (error) => {
+        term.writeln(`Connection error: ${error.message}`);
+      });
+
+      socket.on("disconnect", () => {
+        term.writeln("Disconnected from terminal server");
+      });
+
+      socket.on("terminal_output", (data) => {
+        if (data && data.output) {
+          term.write(data.output);
+        }
+      });
+
+      term.onData((data) => {
+        if (socket.connected) {
+          socket.emit("terminal_input", { input: data });
+        }
+      });
+
+      let resizeTimeout;
+      const handleResize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          try {
+            if (fitAddonRef.current && term.element) {
+              fitAddonRef.current.fit();
+              const { rows, cols } = term;
+              if (socket.connected) {
+                socket.emit("resize", { rows, cols });
+              }
+              term.refresh(0, term.rows - 1);
+            }
+          } catch (error) {
+            console.error("Error handling resize:", error);
+          }
+        }, 100);
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      return () => {
+        clearTimeout(resizeTimeout);
+        window.removeEventListener("resize", handleResize);
+        if (socket.connected) {
+          socket.disconnect();
+        }
+        term.dispose();
+      };
     } catch (error) {
       console.error("Error initializing terminal:", error);
     }
@@ -145,7 +137,7 @@ const TerminalComponent = () => {
         width: "100%",
         height: "100%",
         minHeight: "300px",
-        overflow: "hidden", // Prevent any overflow
+        overflow: "hidden",
         position: "relative",
       }}
     />

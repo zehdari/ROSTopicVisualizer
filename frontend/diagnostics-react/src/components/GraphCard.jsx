@@ -179,7 +179,8 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
         <p className="tooltip-time">{`Time: ${label}`}</p>
         {payload.map((entry) => {
           const { dataKey, value, stroke, name } = entry;
-          const roundedValue = value ? value.toFixed(6) : "N/A";
+          const roundedValue =
+            value === null || value === undefined ? "N/A" : value.toFixed(6);
           return (
             <p
               key={dataKey}

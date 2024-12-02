@@ -79,6 +79,7 @@
   background-color: var(--hover-bg, #555);
   color: var(--settings-btn-hover-color, #fff);
   border-color: var(--hover-bg, #555);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .base-card-btn:focus {

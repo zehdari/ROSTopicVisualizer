@@ -20,6 +20,19 @@ video_server_processes = {}
 # Dictionary to store terminal sessions
 terminal_sessions = {}
 
+def discover_ros_topics():
+    try:
+        command = "ros2 topic list"
+        bash_command = f"bash -c 'source /home/ubuntu/.bashrc && {command}'"
+        result = subprocess.run(bash_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode == 0:
+            topics = result.stdout.strip().split('\n')
+            return [topic for topic in topics if topic]  # Filter out empty strings
+        return []
+    except Exception as e:
+        print(f"Error discovering topics: {e}")
+        return []
+
 def stop_video_server(topic):
     if topic in video_server_processes:
         process = video_server_processes[topic]
@@ -43,6 +56,14 @@ def start_video_server():
         if not topic or not port:
             return jsonify({"error": "Topic and port are required"}), 400
 
+        # Get available topics and check if requested topic exists
+        available_topics = discover_ros_topics()
+        if topic not in available_topics:
+            return jsonify({
+                "error": f"Topic '{topic}' not found",
+                "available_topics": available_topics
+            }), 404
+
         # Stop the video server for the same topic if it's already running
         if topic in video_server_processes:
             stop_video_server(topic)
@@ -53,7 +74,10 @@ def start_video_server():
         process = subprocess.Popen(bash_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         video_server_processes[topic] = process
 
-        return jsonify({"message": f"Video server started for topic '{topic}' on port {port}."})
+        return jsonify({
+            "message": f"Video server started for topic '{topic}' on port {port}.",
+            "available_topics": available_topics
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -75,7 +99,7 @@ def stop_video_server_route():
             return jsonify({"message": f"No video server running for topic '{topic}'."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 @socketio.on('connect')
 def handle_connect():
     print("Client connected")

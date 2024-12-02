@@ -19,7 +19,7 @@ const TopicRow = ({
     >
       <td className="topic-name">{topic.name}</td>
       <td>{topic.type}</td>
-      <td>
+      <td className="topic-actions">
         {isConfigured &&
           topic.type !== "sensor_msgs/msg/PointCloud2" &&
           !isVisible && (

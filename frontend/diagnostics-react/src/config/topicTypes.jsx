@@ -18,7 +18,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       {
         key: "value",
-        name: "Enabled",
+        name: "Bool",
         stroke: getCSSColor("--color-light-blue"),
       },
     ],
