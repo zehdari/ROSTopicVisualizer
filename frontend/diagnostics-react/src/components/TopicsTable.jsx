@@ -490,6 +490,7 @@ const TopicsTable = ({
                               <TopicDetails
                                 topic={topic}
                                 topicDetails={openTopics[topic.name]}
+                                onToggleDetails={toggleTopicDetails} // Add this line
                               />
                             )}
                           </React.Fragment>
