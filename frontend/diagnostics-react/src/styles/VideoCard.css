@@ -1,0 +1,8 @@
+/* VideoCard.css */
+/* Only keeping unique styles not covered by BaseCard */
+.video-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-height: 100%;
+}

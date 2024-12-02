@@ -72,7 +72,7 @@
 }
 
 .node-select:hover {
-  background-color: var(--hover-bg); /* Matches search bar hover background */
+  background-color: var(--hover-bg);
 }
 
 /* Placeholder styling for select (if applicable) */
@@ -109,7 +109,8 @@
 .param-value-item input[type="checkbox"],
 .param-value-item input[type="number"],
 .param-value-item input[type="text"] {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 50px;
   padding: 10px; /* Updated to match search bar padding */
   font-size: 1em; /* Ensures consistent font size */
   border: 1px solid var(--border-color);
@@ -149,13 +150,13 @@
   background-color: var(--hover-bg); /* Matches search bar hover background */
 }
 
-/* Styling for the Update Parameters button */
-.update-button-container {
+.button-container {
   display: flex;
   justify-content: center;
+  gap: 10px; /* Adds spacing between buttons */
 }
 
-.update-button-container button {
+.button-container button {
   padding: 10px 20px;
   background-color: var(--card-bg);
   color: var(--button-text, #fff);
@@ -166,11 +167,11 @@
   transition: background-color 0.3s, color 0.3s;
 }
 
-.update-button-container button:hover {
+.button-container button:hover {
   background-color: var(--hover-bg);
 }
 
-.update-button-container button:focus {
+.button-container button:focus {
   border-color: var(--highlight-color);
 }
 

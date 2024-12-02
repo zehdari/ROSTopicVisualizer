@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { Ros, Service } from "roslib";
 import ClipLoader from "react-spinners/ClipLoader";
 import "../styles/ParamPanel.css";
+import { NETWORK_CONFIG } from "../config/networkConfig";
 
 const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
-  const [nodes, setNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState(initialSelectedNode);
   const [nodeParams, setNodeParams] = useState([]);
   const [paramValues, setParamValues] = useState({});
@@ -24,11 +24,10 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
   useEffect(() => {
     if (!externalRos) {
       const newRos = new Ros({
-        url: "ws://localhost:9090",
+        url: NETWORK_CONFIG.ROS_BRIDGE_URL,
       });
 
       newRos.on("connection", () => {
-        console.log("Connected to ROS websocket");
         setRos(newRos);
 
         // Fetch nodes logic (similar to previous implementation)
@@ -47,8 +46,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
                 !node.startsWith("/master") &&
                 !node.startsWith("/rosapi")
             );
-
-            setNodes(filteredNodes);
 
             // If an initial node was provided and it's in the list, select it
             if (
@@ -76,9 +73,9 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
   useEffect(() => {
     if (!ros || !selectedNode) return;
 
-    let isCancelled = false; // Flag to track cancellation
-    setIsLoadingParams(true); // Start loading
-    setShowSpinner(false); // Reset spinner visibility
+    let isCancelled = false;
+    setIsLoadingParams(true);
+    setShowSpinner(false);
 
     // Initialize a timer to show the spinner after 500ms
     const spinnerTimer = setTimeout(() => {
@@ -105,8 +102,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
           ? listResult.result.names
           : listResult.names || [];
 
-        console.log(`Parameters for ${selectedNode}:`, paramNames);
-
         if (!isCancelled) {
           setNodeParams(Array.isArray(paramNames) ? paramNames : []);
           setParamValues({});
@@ -117,9 +112,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
 
         for (const param of paramNames) {
           if (isCancelled) {
-            console.log(
-              `Fetch operation cancelled. Skipping parameter '${param}'.`
-            );
             break;
           }
 
@@ -134,8 +126,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
             const getResult = await new Promise((resolve, reject) => {
               getParamService.callService(getRequest, resolve, reject);
             });
-
-            console.log(`Result for parameter ${param}:`, getResult);
 
             const paramValue = getResult?.result
               ? getResult.result.values[0]
@@ -179,10 +169,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
 
         if (!isCancelled) {
           setParamValues(allParamValues);
-        } else {
-          console.log(
-            `Discarded fetched parameters for '${selectedNode}' as the operation was cancelled.`
-          );
         }
       } catch (err) {
         console.error(
@@ -262,11 +248,53 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
             onChange={(e) => handleParamChange(param, "string", e.target.value)}
           />
         );
+      case 5: // Byte Array
+        return (
+          <input
+            type="text"
+            value={
+              typeof paramValue.byte_array_value === "string"
+                ? paramValue.byte_array_value
+                : Array.isArray(paramValue.byte_array_value)
+                ? paramValue.byte_array_value.join(",")
+                : ""
+            }
+            onChange={(e) =>
+              handleParamChange(param, "byte_array", e.target.value)
+            }
+            placeholder="Enter comma-separated byte values"
+          />
+        );
+      case 6: // Bool Array
+        return (
+          <input
+            type="text"
+            value={
+              typeof paramValue.bool_array_value === "string"
+                ? paramValue.bool_array_value
+                : Array.isArray(paramValue.bool_array_value)
+                ? paramValue.bool_array_value
+                    .map((val) => val.toString())
+                    .join(",")
+                : ""
+            }
+            onChange={(e) =>
+              handleParamChange(param, "bool_array", e.target.value)
+            }
+            placeholder="Enter comma-separated boolean values (true/false)"
+          />
+        );
       case 7: // Integer Array
         return (
           <input
             type="text"
-            value={paramValue.integer_array_value.join(",") || ""}
+            value={
+              typeof paramValue.integer_array_value === "string"
+                ? paramValue.integer_array_value
+                : Array.isArray(paramValue.integer_array_value)
+                ? paramValue.integer_array_value.join(",")
+                : ""
+            }
             onChange={(e) =>
               handleParamChange(param, "integer_array", e.target.value)
             }
@@ -277,7 +305,13 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
         return (
           <input
             type="text"
-            value={paramValue.double_array_value.join(",") || ""}
+            value={
+              typeof paramValue.double_array_value === "string"
+                ? paramValue.double_array_value
+                : Array.isArray(paramValue.double_array_value)
+                ? paramValue.double_array_value.join(",")
+                : ""
+            }
             onChange={(e) =>
               handleParamChange(param, "double_array", e.target.value)
             }
@@ -288,7 +322,13 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
         return (
           <input
             type="text"
-            value={paramValue.string_array_value.join(",") || ""}
+            value={
+              typeof paramValue.string_array_value === "string"
+                ? paramValue.string_array_value
+                : Array.isArray(paramValue.string_array_value)
+                ? paramValue.string_array_value.join(",")
+                : ""
+            }
             onChange={(e) =>
               handleParamChange(param, "string_array", e.target.value)
             }
@@ -305,21 +345,40 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
       const updatedValues = { ...prevValues };
       updatedValues[param] = { ...updatedValues[param] };
 
-      // Update the correct field based on type
       switch (type) {
         case "bool":
           updatedValues[param].bool_value = newValue;
           break;
         case "integer":
-          updatedValues[param].integer_value = newValue;
+          updatedValues[param].integer_value = newValue
+            ? parseInt(newValue, 10)
+            : null;
           break;
         case "double":
-          updatedValues[param].double_value = newValue;
+          updatedValues[param].double_value = newValue
+            ? parseFloat(newValue)
+            : null;
           break;
         case "string":
           updatedValues[param].string_value = newValue;
           break;
+        case "integer_array":
+          updatedValues[param].integer_array_value = newValue;
+          break;
+        case "double_array":
+          updatedValues[param].double_array_value = newValue; // Store as raw string
+          break;
+        case "string_array":
+          updatedValues[param].string_array_value = newValue;
+          break;
+        case "bool_array":
+          updatedValues[param].bool_array_value = newValue;
+          break;
+        case "byte_array":
+          updatedValues[param].byte_array_value = newValue;
+          break;
         default:
+          console.warn(`Unhandled type '${type}' for parameter '${param}'`);
           break;
       }
 
@@ -330,7 +389,6 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
   const updateParams = async () => {
     if (!ros || !selectedNode) return;
 
-    // Prepare the parameters to be updated
     const updatedParams = Object.keys(paramValues)
       .map((param) => {
         const paramValue = paramValues[param];
@@ -346,7 +404,7 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
           value: null,
         };
 
-        // Wrap the value in the correct ParameterValue structure
+        // Build the ParameterValue structure
         switch (paramType) {
           case 1: // Bool
             paramUpdate.value = {
@@ -373,54 +431,88 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
             };
             break;
           case 5: // Byte Array
+            const byteArrayValue = Array.isArray(paramValue.byte_array_value)
+              ? paramValue.byte_array_value
+              : paramValue.byte_array_value.split(",");
             paramUpdate.value = {
               type: 5,
-              byte_array_value: paramValue.byte_array_value,
+              byte_array_value: byteArrayValue
+                .map((item) => (typeof item === "string" ? item.trim() : item))
+                .filter((item) => !isNaN(parseInt(item, 10)))
+                .map((item) => parseInt(item, 10)),
             };
             break;
           case 6: // Bool Array
+            const boolArrayValue = Array.isArray(paramValue.bool_array_value)
+              ? paramValue.bool_array_value
+              : paramValue.bool_array_value.split(",");
             paramUpdate.value = {
               type: 6,
-              bool_array_value: paramValue.bool_array_value,
+              bool_array_value: boolArrayValue
+                .map((item) =>
+                  typeof item === "string"
+                    ? item.trim().toLowerCase()
+                    : item.toString().toLowerCase()
+                )
+                .filter((item) => item === "true" || item === "false")
+                .map((item) => item === "true"),
             };
             break;
           case 7: // Integer Array
+            const intArrayValue = Array.isArray(paramValue.integer_array_value)
+              ? paramValue.integer_array_value
+              : paramValue.integer_array_value.split(",");
             paramUpdate.value = {
               type: 7,
-              integer_array_value: paramValue.integer_array_value,
+              integer_array_value: intArrayValue
+                .map((item) => (typeof item === "string" ? item.trim() : item))
+                .filter((item) => !isNaN(parseInt(item, 10)))
+                .map((item) => parseInt(item, 10)),
             };
             break;
           case 8: // Double Array
+            const doubleArrayValue = Array.isArray(
+              paramValue.double_array_value
+            )
+              ? paramValue.double_array_value
+              : paramValue.double_array_value.split(",");
             paramUpdate.value = {
               type: 8,
-              double_array_value: paramValue.double_array_value,
+              double_array_value: doubleArrayValue
+                .map((item) => (typeof item === "string" ? item.trim() : item))
+                .filter((item) => !isNaN(parseFloat(item)))
+                .map((item) => parseFloat(item)),
             };
             break;
           case 9: // String Array
+            const stringArrayValue = Array.isArray(
+              paramValue.string_array_value
+            )
+              ? paramValue.string_array_value
+              : paramValue.string_array_value.split(",");
             paramUpdate.value = {
               type: 9,
-              string_array_value: paramValue.string_array_value,
+              string_array_value: stringArrayValue
+                .map((item) =>
+                  typeof item === "string" ? item.trim() : item.toString()
+                )
+                .filter((item) => item.length > 0),
             };
             break;
           default:
             console.warn(`Unsupported parameter type: ${paramType}`);
-            return null; // Skip unsupported types
+            return null;
         }
 
         return paramUpdate;
       })
       .filter((param) => param !== null);
 
-    // Check if there are parameters to update
     if (updatedParams.length === 0) {
       setMessage("No valid parameters to update.");
       return;
     }
 
-    // Log the updated parameters to verify their structure
-    console.log("Updated Parameters:", updatedParams);
-
-    // Call the ROS service to update each parameter individually
     for (const param of updatedParams) {
       const setParamService = new Service({
         ros: ros,
@@ -428,25 +520,13 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
         serviceType: "rcl_interfaces/SetParameters",
       });
 
-      const request = { parameters: [param] }; // One parameter per request
+      const request = { parameters: [param] };
 
       try {
-        // Log before calling the service
-        console.log(
-          `Sending request to update parameter: ${param.name}`,
-          request
-        );
-
-        // Call the ROS service for each parameter
         await new Promise((resolve, reject) => {
           setParamService.callService(request, resolve, reject);
         });
-
-        // Log success response
-        console.log(`Parameter '${param.name}' updated successfully`);
       } catch (err) {
-        // Log the error if the service call fails for a specific parameter
-        console.error(`Failed to update parameter '${param.name}':`, err);
         setError(
           `Failed to update parameter '${param.name}': ${err.message || err}`
         );
@@ -468,18 +548,77 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
     }
   }, [message, error]);
 
+  const resetParams = () => {
+    if (!ros || !selectedNode) return;
+
+    setError(null);
+    setMessage(null);
+
+    // Refetch parameters
+    const fetchParamsAgain = async () => {
+      setIsLoadingParams(true);
+      try {
+        const listParamsService = new Service({
+          ros: ros,
+          name: `${selectedNode}/list_parameters`,
+          serviceType: "rcl_interfaces/ListParameters",
+        });
+
+        const listRequest = { prefixes: [] }; // Adjust if needed
+        const listResult = await new Promise((resolve, reject) => {
+          listParamsService.callService(listRequest, resolve, reject);
+        });
+
+        const paramNames = listResult.result
+          ? listResult.result.names
+          : listResult.names || [];
+
+        const allParamValues = {};
+
+        for (const param of paramNames) {
+          const getParamService = new Service({
+            ros: ros,
+            name: `${selectedNode}/get_parameters`,
+            serviceType: "rcl_interfaces/GetParameters",
+          });
+
+          const getRequest = { names: [param] };
+          const getResult = await new Promise((resolve, reject) => {
+            getParamService.callService(getRequest, resolve, reject);
+          });
+
+          const paramValue = getResult?.result
+            ? getResult.result.values[0]
+            : getResult.values
+            ? getResult.values[0]
+            : undefined;
+
+          if (paramValue) {
+            allParamValues[param] = paramValue;
+          } else {
+            allParamValues[param] = { type: null, value: "Undefined" };
+          }
+        }
+
+        setNodeParams(paramNames);
+        setParamValues(allParamValues);
+        setMessage("Parameters reset to their original values.");
+      } catch (err) {
+        console.error("Error resetting parameters:", err);
+        setError(`Could not reset parameters: ${err.message || err}`);
+      } finally {
+        setIsLoadingParams(false);
+      }
+    };
+
+    fetchParamsAgain();
+  };
+
   return (
     <div className="param-panel">
-      {/* Message Display */}
-      <div className="message-container">
-        {error && <p className="error-message">{error}</p>}
-        {message && <p className="info-message">{message}</p>}
-      </div>
-
-      {/* Conditionally Render Parameters and Update Button Only When a Node is Selected */}
+      {/* Conditionally Render Parameters and Buttons Only When a Node is Selected */}
       {selectedNode && (
         <>
-          {/* Display parameters with input fields for values */}
           <div className="param-values-container">
             {isLoadingParams || showSpinner ? (
               <div className="spinner-container">
@@ -505,16 +644,22 @@ const ParamPanel = ({ initialSelectedNode = "", ros: externalRos }) => {
             )}
           </div>
 
-          {/* Button to update parameters */}
+          {/* Buttons for updating and resetting parameters */}
           {!isLoadingParams &&
             showSpinner === false &&
             nodeParams.length > 0 && (
-              <div className="update-button-container">
+              <div className="button-container">
                 <button onClick={updateParams}>Update Parameters</button>
+                <button onClick={resetParams}>Reset Parameters</button>
               </div>
             )}
         </>
       )}
+      {/* Message Display */}
+      <div className="message-container">
+        {error && <p className="error-message">{error}</p>}
+        {message && <p className="info-message">{message}</p>}
+      </div>
     </div>
   );
 };

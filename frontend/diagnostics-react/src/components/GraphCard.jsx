@@ -1,4 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import BaseCard from "./BaseCard";
+import "../styles/GraphCard.css";
+import { FaSave, FaTimes } from "react-icons/fa";
+import { useRosTopic } from "../utils/useRosTopic";
 import {
   LineChart,
   Line,
@@ -7,35 +11,104 @@ import {
   Tooltip,
   CartesianGrid,
   Legend,
+  ResponsiveContainer,
 } from "recharts";
-import { useRosTopic } from "../utils/useRosTopic";
-import { FaCog, FaSave, FaTimes } from "react-icons/fa"; // Importing icons
-import "../styles/RealtimeGraph.css"; // Assume you have corresponding CSS
 
 const frequencyWindow = 5;
 const frequencyTimeout = 5000;
 
+const getCSSColorVariables = () => {
+  const colorVars =
+    Array.from(document.styleSheets)
+      .flatMap((sheet) => {
+        try {
+          return Array.from(sheet.cssRules);
+        } catch {
+          return [];
+        }
+      })
+      .find((rule) => rule.selectorText === ":root")?.style || [];
+
+  return Array.from(colorVars)
+    .filter((prop) => prop.startsWith("--color-"))
+    .map((prop) => `var(${prop})`);
+};
+
+const generateArrayGraphKeys = (length) => {
+  const colors = getCSSColorVariables();
+  return Array.from({ length }, (_, index) => ({
+    key: `value${index}`,
+    name: `Value ${index + 1}`,
+    stroke: colors[index % colors.length],
+  }));
+};
+
+const isMultiArrayType = (topicConfig) => {
+  return (
+    topicConfig.isDynamicKeys === true && topicConfig.graphKeys.length === 0
+  );
+};
+
 const GraphCard = ({ topicConfig, onRemoveGraph }) => {
   const [data, setData] = useState([]);
+  const [graphKeys, setGraphKeys] = useState(topicConfig.graphKeys || []);
   const [frequency, setFrequency] = useState(0);
   const [activeLines, setActiveLines] = useState(
-    topicConfig.graphKeys.reduce((acc, key) => {
+    (topicConfig.graphKeys || []).reduce((acc, key) => {
       acc[key.key] = true;
       return acc;
     }, {})
   );
-  const [isHovering, setIsHovering] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [maxDataPoints, setMaxDataPoints] = useState(50);
   const [inputMaxDataPoints, setInputMaxDataPoints] = useState(maxDataPoints);
 
-  const message = useRosTopic(
-    topicConfig.name,
-    `${topicConfig.package}/msg/${topicConfig.type}`
-  );
-
+  const message = useRosTopic(topicConfig.name, topicConfig.type);
   const timestampsRef = useRef([]);
   const lastMessageTimeRef = useRef(Date.now());
+  const isInitializedRef = useRef(false);
+
+  // Initialize dynamic graph keys when first message arrives
+  useEffect(() => {
+    if (message && topicConfig.isDynamicKeys && !isInitializedRef.current) {
+      if (topicConfig.type === "std_msgs/msg/UInt8MultiArray") {
+        const binaryString = atob(message.data);
+        const length = binaryString.length;
+
+        const newGraphKeys = generateArrayGraphKeys(length);
+
+        setGraphKeys(newGraphKeys);
+
+        const newActiveLines = newGraphKeys.reduce((acc, key) => {
+          acc[key.key] = true;
+          return acc;
+        }, {});
+        setActiveLines(newActiveLines);
+        isInitializedRef.current = true;
+      } else if (isMultiArrayType(topicConfig) && Array.isArray(message.data)) {
+        // Handle other multi-array types as before
+        const newGraphKeys = generateArrayGraphKeys(message.data.length);
+        setGraphKeys(newGraphKeys);
+        const newActiveLines = newGraphKeys.reduce((acc, key) => {
+          acc[key.key] = true;
+          return acc;
+        }, {});
+        setActiveLines(newActiveLines);
+        isInitializedRef.current = true;
+      }
+    }
+  }, [message, topicConfig.isDynamicKeys, topicConfig.type]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const currentTime = Date.now();
+      if (currentTime - lastMessageTimeRef.current > frequencyTimeout) {
+        setFrequency(0);
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const currentTime = Date.now();
@@ -60,17 +133,6 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
       setData((prevData) => [...prevData.slice(-maxDataPoints + 1), dataEntry]);
     }
   }, [message, topicConfig, maxDataPoints]);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      const currentTime = Date.now();
-      if (currentTime - lastMessageTimeRef.current > frequencyTimeout) {
-        setFrequency(0);
-      }
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
 
   const handleLegendClick = (dataKey) => {
     setActiveLines((prevActiveLines) => ({
@@ -109,11 +171,6 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
     );
   };
 
-  const memoizedRenderLegend = React.useCallback(renderCustomLegend, [
-    activeLines,
-    topicConfig,
-  ]);
-
   const customTooltip = ({ payload, label }) => {
     if (!payload || payload.length === 0) return null;
 
@@ -122,7 +179,8 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
         <p className="tooltip-time">{`Time: ${label}`}</p>
         {payload.map((entry) => {
           const { dataKey, value, stroke, name } = entry;
-          const roundedValue = value ? value.toFixed(6) : "N/A";
+          const roundedValue =
+            value === null || value === undefined ? "N/A" : value.toFixed(6);
           return (
             <p
               key={dataKey}
@@ -137,76 +195,44 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
     );
   };
 
-  const handleSettingsSave = () => {
-    const parsedValue = parseInt(inputMaxDataPoints, 10);
-    if (!isNaN(parsedValue) && parsedValue > 0) {
-      setMaxDataPoints(parsedValue);
-      setIsSettingsOpen(false);
-    } else {
-      alert("Please enter a valid positive number.");
-    }
-  };
-
-  const handleSettingsCancel = () => {
-    setInputMaxDataPoints(maxDataPoints);
-    setIsSettingsOpen(false);
-  };
-
   return (
-    <div
-      key={topicConfig.name}
-      className="graph-card"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
-      {isHovering && (
-        <div className="graph-card-buttons">
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="settings-graph-btn"
-            title="Settings"
-          >
-            <FaCog />
-          </button>
-          <button
-            onClick={() => onRemoveGraph(topicConfig.name)}
-            className="remove-graph-btn"
-            title="Remove Graph"
-          >
-            <FaTimes />
-          </button>
-        </div>
-      )}
-      <div className="graph-header">
-        <h3>{topicConfig.name}</h3>
+    <BaseCard
+      title={topicConfig.name}
+      onRemove={() => onRemoveGraph(topicConfig.name)}
+      onSettings={() => setIsSettingsOpen(true)}
+      showSettings={true}
+      headerContent={
         <div className="frequency-display">
           {frequency > 0 ? `${frequency} Hz` : "0 Hz"}
         </div>
+      }
+    >
+      <div style={{ width: "100%", maxWidth: "450px", height: "300px" }}>
+        <ResponsiveContainer>
+          <LineChart
+            data={data}
+            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis />
+            <Tooltip content={customTooltip} />
+            <Legend content={renderCustomLegend} />
+            {graphKeys.map((keyConfig) => (
+              <Line
+                key={`${topicConfig.name}-${keyConfig.key}`}
+                type="monotone"
+                dataKey={keyConfig.key}
+                stroke={keyConfig.stroke}
+                name={keyConfig.name}
+                dot={false}
+                isAnimationActive={false}
+                hide={!activeLines[keyConfig.key]}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
       </div>
-      <LineChart
-        width={500}
-        height={300}
-        data={data}
-        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" />
-        <YAxis />
-        <Tooltip content={customTooltip} />
-        <Legend content={memoizedRenderLegend} />
-        {topicConfig.graphKeys.map((keyConfig) => (
-          <Line
-            key={`${topicConfig.name}-${keyConfig.key}`}
-            type="monotone"
-            dataKey={keyConfig.key}
-            stroke={keyConfig.stroke}
-            name={keyConfig.name}
-            dot={false}
-            isAnimationActive={false}
-            hide={!activeLines[keyConfig.key]}
-          />
-        ))}
-      </LineChart>
 
       {isSettingsOpen && (
         <div className="settings-modal">
@@ -224,14 +250,23 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
             </div>
             <div className="settings-modal-buttons">
               <button
-                onClick={handleSettingsCancel}
-                className="settings-modal-btn cancel-btn"
+                onClick={() => {
+                  setInputMaxDataPoints(maxDataPoints);
+                  setIsSettingsOpen(false);
+                }}
+                className="settings-modal-btn"
               >
                 <FaTimes /> Cancel
               </button>
               <button
-                onClick={handleSettingsSave}
-                className="settings-modal-btn save-btn"
+                onClick={() => {
+                  const parsedValue = parseInt(inputMaxDataPoints, 10);
+                  if (!isNaN(parsedValue) && parsedValue > 0) {
+                    setMaxDataPoints(parsedValue);
+                    setIsSettingsOpen(false);
+                  }
+                }}
+                className="settings-modal-btn"
               >
                 <FaSave /> Save
               </button>
@@ -239,7 +274,7 @@ const GraphCard = ({ topicConfig, onRemoveGraph }) => {
           </div>
         </div>
       )}
-    </div>
+    </BaseCard>
   );
 };
 

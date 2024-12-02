@@ -1,0 +1,14 @@
+.topic-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.control-button:hover.remove-button {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.pointcloud-content {
+  padding: 0;
+}
