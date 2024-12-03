@@ -57,142 +57,125 @@ const TopicsTable = ({
       url: NETWORK_CONFIG.ROS_BRIDGE_URL,
     });
 
-    newRos.on("connection", () => {
-      // Create service clients for rosapi/nodes and rosapi/node_details
-      const nodesService = new Service({
-        ros: newRos,
-        name: "/rosapi/nodes",
-        serviceType: "rosapi/Nodes",
-      });
+    newRos.on("connection", async () => {
+      try {
+        // Create service clients
+        const services = {
+          nodes: new Service({
+            ros: newRos,
+            name: "/rosapi/nodes",
+            serviceType: "rosapi/Nodes",
+          }),
+          nodeDetails: new Service({
+            ros: newRos,
+            name: "/rosapi/node_details",
+            serviceType: "rosapi/NodeDetails",
+          }),
+          topicType: new Service({
+            ros: newRos,
+            name: "/rosapi/topic_type",
+            serviceType: "rosapi/TopicType",
+          }),
+        };
 
-      const nodeDetailsService = new Service({
-        ros: newRos,
-        name: "/rosapi/node_details",
-        serviceType: "rosapi/NodeDetails",
-      });
+        // Helper function to call service with Promise
+        const callService = (service, request) => {
+          return new Promise((resolve, reject) => {
+            service.callService(request, resolve, reject);
+          });
+        };
 
-      const topicTypeService = new Service({
-        ros: newRos,
-        name: "/rosapi/topic_type",
-        serviceType: "rosapi/TopicType",
-      });
+        // Get all nodes
+        const nodesResponse = await callService(services.nodes, {});
+        const nodeNames = nodesResponse.nodes.sort((a, b) =>
+          a.toLowerCase().localeCompare(b.toLowerCase())
+        );
 
-      // Fetch the list of nodes
-      nodesService.callService(
-        {},
-        (nodesResponse) => {
-          const nodeNames = nodesResponse.nodes.sort((a, b) =>
-            a.toLowerCase().localeCompare(b.toLowerCase())
+        // Fetch node details in parallel with batching
+        const batchSize = 10; // Adjust based on your ROS bridge capacity
+        const nodeDetails = [];
+
+        for (let i = 0; i < nodeNames.length; i += batchSize) {
+          const batch = nodeNames.slice(i, i + batchSize);
+          const batchPromises = batch.map((nodeName) =>
+            callService(services.nodeDetails, { node: nodeName })
+              .then((details) => ({
+                node: nodeName,
+                publishing: details.publishing,
+                subscribing: details.subscribing,
+                services: details.services,
+              }))
+              .catch((error) => {
+                console.error(
+                  `Error fetching details for node ${nodeName}:`,
+                  error
+                );
+                return null;
+              })
           );
 
-          // For each node, fetch its details
-          const nodeDetailsPromises = nodeNames.map((nodeName) => {
-            return new Promise((resolve) => {
-              nodeDetailsService.callService(
-                { node: nodeName },
-                (detailsResponse) => {
-                  resolve({
-                    node: nodeName,
-                    publishing: detailsResponse.publishing,
-                    subscribing: detailsResponse.subscribing,
-                    services: detailsResponse.services,
-                  });
-                },
-                (error) => {
-                  console.error(
-                    `Error fetching details for node ${nodeName}:`,
-                    error
-                  );
-                  resolve(null); // Resolve with null on error
-                }
-              );
-            });
-          });
-
-          Promise.all(nodeDetailsPromises).then((nodesDetails) => {
-            // Filter out any null responses due to errors
-            const validNodesDetails = nodesDetails.filter(
-              (detail) => detail !== null
-            );
-
-            // Collect all unique publishing topics
-            const allPublishingTopics = validNodesDetails
-              .flatMap((node) => node.publishing)
-              .filter((topic) => !IGNORED_TOPICS.includes(topic));
-
-            // Remove duplicate topics
-            const uniquePublishingTopics = Array.from(
-              new Set(allPublishingTopics)
-            );
-
-            // Fetch topic types
-            const topicTypePromises = uniquePublishingTopics.map(
-              (topicName) => {
-                return new Promise((resolve) => {
-                  topicTypeService.callService(
-                    { topic: topicName },
-                    (typeResponse) => {
-                      resolve({
-                        name: topicName,
-                        type: typeResponse.type,
-                      });
-                    },
-                    (error) => {
-                      console.error(
-                        `Error getting type for ${topicName}:`,
-                        error
-                      );
-                      resolve({
-                        name: topicName,
-                        type: "Unknown",
-                      });
-                    }
-                  );
-                });
-              }
-            );
-
-            Promise.all(topicTypePromises).then((topicsWithTypes) => {
-              // Create a map for quick lookup of topic types
-              const topicTypeMap = topicsWithTypes.reduce((acc, topic) => {
-                acc[topic.name] = topic.type;
-                return acc;
-              }, {});
-
-              // Group topics by node based on publishing topics
-              const grouped = validNodesDetails.reduce((acc, nodeDetail) => {
-                const publishingTopics = nodeDetail.publishing
-                  .filter((topic) => !IGNORED_TOPICS.includes(topic))
-                  .map((topic) => ({
-                    name: topic,
-                    type: topicTypeMap[topic] || "Unknown",
-                  }));
-
-                if (publishingTopics.length > 0) {
-                  acc[nodeDetail.node] = publishingTopics;
-                }
-
-                return acc;
-              }, {});
-
-              setTopicsByNode(grouped);
-              setLoading(false);
-            });
-          });
-        },
-        (error) => {
-          setLoading(false);
+          const batchResults = await Promise.all(batchPromises);
+          nodeDetails.push(...batchResults.filter((detail) => detail !== null));
         }
-      );
 
-      rosRef.current = newRos;
-      setRos(newRos);
+        // Collect and deduplicate publishing topics
+        const uniquePublishingTopics = Array.from(
+          new Set(
+            nodeDetails
+              .flatMap((node) => node.publishing)
+              .filter((topic) => !IGNORED_TOPICS.includes(topic))
+          )
+        );
+
+        // Fetch topic types in parallel with batching
+        const topicTypes = new Map();
+
+        for (let i = 0; i < uniquePublishingTopics.length; i += batchSize) {
+          const batch = uniquePublishingTopics.slice(i, i + batchSize);
+          const batchPromises = batch.map((topicName) =>
+            callService(services.topicType, { topic: topicName })
+              .then((response) => [topicName, response.type])
+              .catch((error) => {
+                console.error(`Error getting type for ${topicName}:`, error);
+                return [topicName, "Unknown"];
+              })
+          );
+
+          const batchResults = await Promise.all(batchPromises);
+          batchResults.forEach(([name, type]) => topicTypes.set(name, type));
+        }
+
+        // Group topics by node
+        const grouped = nodeDetails.reduce((acc, nodeDetail) => {
+          const publishingTopics = nodeDetail.publishing
+            .filter((topic) => !IGNORED_TOPICS.includes(topic))
+            .map((topic) => ({
+              name: topic,
+              type: topicTypes.get(topic) || "Unknown",
+            }));
+
+          if (publishingTopics.length > 0) {
+            acc[nodeDetail.node] = publishingTopics;
+          }
+
+          return acc;
+        }, {});
+
+        setTopicsByNode(grouped);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching topics and nodes:", error);
+        setLoading(false);
+      }
     });
 
     newRos.on("error", (error) => {
       console.error("ROS connection error:", error);
       setLoading(false);
     });
+
+    rosRef.current = newRos;
+    setRos(newRos);
   };
 
   useEffect(() => {

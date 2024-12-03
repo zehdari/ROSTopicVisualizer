@@ -22,7 +22,7 @@ const App = () => {
     handleAddPointCloud,
     handleAddStatus,
     handleAddDiagnostic,
-    updateVisibleTopics,
+    updateVisibleGraphs,
     updateVisibleVideos,
     updateVisiblePointClouds,
     updateVisibleStatus,
@@ -41,7 +41,7 @@ const App = () => {
         visiblePointClouds={visiblePointClouds}
         visibleStatus={visibleStatus}
         visibleDiagnostics={visibleDiagnostics}
-        updateVisibleTopics={updateVisibleTopics}
+        updateVisibleGraphs={updateVisibleGraphs}
         updateVisibleVideos={updateVisibleVideos}
         updateVisiblePointClouds={updateVisiblePointClouds}
         updateVisibleStatus={updateVisibleStatus}

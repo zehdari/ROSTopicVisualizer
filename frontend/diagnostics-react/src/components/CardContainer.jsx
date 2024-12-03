@@ -13,7 +13,7 @@ const CardContainer = ({
   visiblePointClouds,
   visibleStatus,
   visibleDiagnostics,
-  updateVisibleTopics,
+  updateVisibleGraphs,
   updateVisibleVideos,
   updateVisiblePointClouds,
   updateVisibleStatus,
@@ -54,10 +54,10 @@ const CardContainer = ({
   ].sort((a, b) => a.timestamp - b.timestamp);
 
   const handleRemoveGraph = (topicName) => {
-    const updatedTopics = visibleGraphs.filter(
+    const updatedGraphs = visibleGraphs.filter(
       (topic) => topic.name !== topicName
     );
-    updateVisibleTopics(updatedTopics);
+    updateVisibleGraphs(updatedGraphs);
   };
 
   const handleRemoveVideo = async (topic) => {

@@ -3,7 +3,7 @@ import { TOPICS_CONFIG } from "../config/topicsConfig";
 import { TOPIC_TYPES } from "../config/topicTypes";
 
 export const useVisibleTopics = () => {
-  const [visibleGraphs, setVisibleTopics] = useState([]);
+  const [visibleGraphs, setVisibleGraphs] = useState([]);
   const [visibleVideos, setVisibleVideos] = useState([]);
   const [visiblePointClouds, setVisiblePointClouds] = useState([]);
   const [visibleStatus, setVisibleStatus] = useState([]);
@@ -21,7 +21,7 @@ export const useVisibleTopics = () => {
       const { name, type } = newTopic;
       const configTopic = TOPICS_CONFIG.find((topic) => topic.name === name);
       if (configTopic) {
-        setVisibleTopics((prev) => [...prev, configTopic]);
+        setVisibleGraphs((prev) => [...prev, configTopic]);
         return;
       }
       if (TOPIC_TYPES[type]) {
@@ -30,7 +30,7 @@ export const useVisibleTopics = () => {
           type,
           ...TOPIC_TYPES[type],
         };
-        setVisibleTopics((prev) => [...prev, dynamicTopicConfig]);
+        setVisibleGraphs((prev) => [...prev, dynamicTopicConfig]);
       } else {
         console.error(`Type ${type} is not defined in TOPIC_TYPES`);
       }
@@ -61,8 +61,8 @@ export const useVisibleTopics = () => {
     }
   };
 
-  const updateVisibleGraphs = (updatedTopics) => {
-    setVisibleTopics(updatedTopics);
+  const updateVisibleGraphs = (updatedGraphs) => {
+    setVisibleGraphs(updatedGraphs);
   };
 
   const updateVisibleVideos = (updatedVideos) => {
