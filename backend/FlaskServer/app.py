@@ -68,7 +68,7 @@ def start_video_server():
         if topic in video_server_processes:
             stop_video_server(topic)
 
-        command = f"ros2 run web_video_server web_video_server --ros-args --param port:={port} --remap topic:={topic}"
+        command = f"run_as_superclient ros2 run web_video_server web_video_server --ros-args --param port:={port} --remap topic:={topic}"
         print(f"Running command: {command}")
         bash_command = f"bash -c 'source /home/ubuntu/.bashrc && {command}'"
         process = subprocess.Popen(bash_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

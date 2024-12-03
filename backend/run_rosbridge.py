@@ -3,7 +3,7 @@ import subprocess
 def launch_rosbridge():
     try:
         # Run the ROS2 launch command
-        subprocess.run(["ros2", "launch", "rosbridge_server", "rosbridge_websocket_launch.xml"], check=True)
+        subprocess.run(["run_as_superclient", "ros2", "launch", "rosbridge_server", "rosbridge_websocket_launch.xml"], check=True, shell=True, executable='/bin/bash')
     except subprocess.CalledProcessError as e:
         print(f"Error launching ROS2 bridge: {e}")
     except KeyboardInterrupt:

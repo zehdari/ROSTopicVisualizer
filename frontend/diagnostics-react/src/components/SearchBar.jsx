@@ -19,7 +19,7 @@ const SearchBar = ({ setFilter }) => {
     <div className="search-bar">
       <input
         type="text"
-        placeholder="Search for a node or topic..."
+        placeholder="Search nodes/topics..."
         value={searchTerm}
         onChange={handleInputChange}
       />

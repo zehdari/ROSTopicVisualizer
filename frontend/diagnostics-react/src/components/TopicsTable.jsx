@@ -14,9 +14,13 @@ const TopicsTable = ({
   onAddGraph,
   onAddVideo,
   onAddPointCloud,
+  onAddStatus,
+  onAddDiagnostic,
   visibleTopics,
   visibleVideos,
   visiblePointClouds,
+  visibleStatus,
+  visibleDiagnostics,
   isTerminalOpen,
   isTreeOpen,
   onToggleTerminal,
@@ -333,6 +337,30 @@ const TopicsTable = ({
     });
   };
 
+  const handleAddStatus = (topic) => {
+    if (!TOPIC_TYPES[topic.type]?.isStatus) return;
+
+    const dynamicTopicConfig = {
+      name: topic.name,
+      type: topic.type,
+      ...TOPIC_TYPES[topic.type],
+      timestamp: Date.now(),
+    };
+    onAddStatus(dynamicTopicConfig);
+  };
+
+  const handleAddDiagnostic = (topic) => {
+    if (!TOPIC_TYPES[topic.type]?.isDiagnostic) return;
+
+    const dynamicTopicConfig = {
+      name: topic.name,
+      type: topic.type,
+      ...TOPIC_TYPES[topic.type],
+      timestamp: Date.now(),
+    };
+    onAddDiagnostic(dynamicTopicConfig);
+  };
+
   const handleAddGraph = (topic) => {
     // Check if the topic is already in TOPICS_CONFIG
     const existingTopicConfig = TOPICS_CONFIG.find(
@@ -475,6 +503,8 @@ const TopicsTable = ({
                               onAddGraph={handleAddGraph}
                               onAddVideo={handleAddVideo}
                               onAddPointCloud={handleAddPointCloud}
+                              onAddStatus={handleAddStatus}
+                              onAddDiagnostic={handleAddDiagnostic}
                               isVisible={visibleTopics.some(
                                 (vt) => vt.name === topic.name
                               )}
@@ -483,6 +513,12 @@ const TopicsTable = ({
                               )}
                               isPointCloudVisible={visiblePointClouds.some(
                                 (vpc) => vpc.name === topic.name
+                              )}
+                              isStatusVisible={visibleStatus.some(
+                                (vs) => vs.name === topic.name
+                              )}
+                              isDiagnosticVisible={visibleDiagnostics.some(
+                                (dg) => dg.name === topic.name
                               )}
                             />
 

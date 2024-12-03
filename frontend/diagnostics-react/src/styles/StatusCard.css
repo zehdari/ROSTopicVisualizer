@@ -1,0 +1,67 @@
+.status-card .base-card-content {
+  padding: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.status-card .base-card-content > div {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  text-align: left;
+  padding: 0.5rem;
+}
+
+.status-card .grid {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.status-card .flex {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.status-card .flex:last-child {
+  border-bottom: none;
+}
+
+.status-card .font-medium {
+  color: var(--text-color);
+  opacity: 0.7;
+  min-width: 90px;
+}
+
+.status-card .text-gray-700 {
+  color: var(--text-color);
+}
+
+.status-card .text-gray-500 {
+  color: var(--text-color);
+  opacity: 0.5;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.status-card .pl-4 {
+  padding-left: 0.5rem;
+}
+
+.status-card .base-card-content > div::-webkit-scrollbar {
+  width: 6px;
+}
+
+.status-card .base-card-content > div::-webkit-scrollbar-track {
+  background: var(--card-bg);
+}
+
+.status-card .base-card-content > div::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+.status-card .base-card-content > div::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-color);
+}

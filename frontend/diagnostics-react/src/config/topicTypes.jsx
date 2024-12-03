@@ -470,23 +470,55 @@ export const TOPIC_TYPES = {
     ],
   },
 
+  "sensor_msgs/msg/Image": {
+    isVideo: true,
+  },
+
   "sensor_msgs/msg/PointCloud2": {
+    isPointCloud: true,
+  },
+
+  "diagnostic_msgs/msg/DiagnosticArray": {
+    parser: (message) => {
+      const statusMap = {};
+      message.status?.forEach((stat) => {
+        statusMap[stat.name] = {
+          hardware_id: stat.hardware_id,
+          level: stat.level,
+          message: stat.message,
+          values: stat.values,
+        };
+      });
+      return statusMap;
+    },
+    isDiagnostic: true,
+  },
+
+  "diagnostic_msgs/msg/DiagnosticStatus": {
+    parser: (message) => {
+      return {
+        [message.name]: {
+          hardware_id: message.hardware_id,
+          level: message.level,
+          message: message.message,
+          values: message.values,
+        },
+      };
+    },
+    isDiagnostic: true,
+  },
+
+  "sensor_msgs/msg/CameraInfo": {
     parser: (message) => ({
-      time: new Date().toLocaleTimeString(),
-      pointCount: message.width * message.height || 0,
-      dataSize: message.data?.length || 0,
+      header: message.header,
+      height: message.height,
+      width: message.width,
+      distortion_model: message.distortion_model,
+      D: message.D,
+      K: message.K,
+      R: message.R,
+      P: message.P,
     }),
-    graphKeys: [
-      {
-        key: "pointCount",
-        name: "Number of Points",
-        stroke: getCSSColor("--color-light-blue"),
-      },
-      {
-        key: "dataSize",
-        name: "Data Size (bytes)",
-        stroke: getCSSColor("--color-soft-green"),
-      },
-    ],
+    isStatus: true,
   },
 };

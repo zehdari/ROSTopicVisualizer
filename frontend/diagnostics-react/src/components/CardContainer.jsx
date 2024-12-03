@@ -2,6 +2,8 @@ import React from "react";
 import GraphCard from "./GraphCard";
 import VideoCard from "./VideoCard";
 import PointCloudCard from "./PointCloudCard";
+import StatusCard from "./StatusCard";
+import DiagnosticCard from "./DiagnosticsCard";
 import "../styles/CardContainer.css";
 import { NETWORK_CONFIG } from "../config/networkConfig";
 
@@ -9,9 +11,13 @@ const CardContainer = ({
   visibleTopics,
   visibleVideos,
   visiblePointClouds,
+  visibleStatus,
+  visibleDiagnostics,
   updateVisibleTopics,
   updateVisibleVideos,
   updateVisiblePointClouds,
+  updateVisibleStatus,
+  updateVisibleDiagnostics,
 }) => {
   // Combine graphs, videos, and point clouds into a single array with type and timestamp
   const allCards = [
@@ -32,6 +38,18 @@ const CardContainer = ({
       data: pointCloud,
       timestamp: pointCloud.timestamp || Date.now(),
       key: pointCloud.name,
+    })),
+    ...visibleStatus.map((status) => ({
+      type: "status",
+      data: status,
+      timestamp: status.timestamp || Date.now(),
+      key: status.name,
+    })),
+    ...visibleDiagnostics.map((diagnostic) => ({
+      type: "diagnostic",
+      data: diagnostic,
+      timestamp: diagnostic.timestamp || Date.now(),
+      key: diagnostic.name,
     })),
   ].sort((a, b) => a.timestamp - b.timestamp);
 
@@ -75,6 +93,20 @@ const CardContainer = ({
     updateVisiblePointClouds(updatedPointClouds);
   };
 
+  const handleRemoveDiagnostic = (topicName) => {
+    const updatedDiagnostics = visibleDiagnostics.filter(
+      (diagnostic) => diagnostic.name !== topicName
+    );
+    updateVisibleDiagnostics(updatedDiagnostics);
+  };
+
+  const handleRemoveStatus = (topicName) => {
+    const updatedStatus = visibleStatus.filter(
+      (status) => status.name !== topicName
+    );
+    updateVisibleStatus(updatedStatus);
+  };
+
   return (
     <div className="card-container">
       <div className="cards-grid">
@@ -94,6 +126,22 @@ const CardContainer = ({
                 key={card.key}
                 topic={card.data.name}
                 onRemovePointCloud={handleRemovePointCloud}
+              />
+            );
+          } else if (card.type === "status") {
+            return (
+              <StatusCard
+                key={card.key}
+                topicConfig={card.data}
+                onRemoveStatus={handleRemoveStatus}
+              />
+            );
+          } else if (card.type === "diagnostic") {
+            return (
+              <DiagnosticCard
+                key={card.key}
+                topicConfig={card.data}
+                onRemoveStatus={handleRemoveDiagnostic}
               />
             );
           } else {

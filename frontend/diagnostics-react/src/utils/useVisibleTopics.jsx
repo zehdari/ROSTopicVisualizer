@@ -6,6 +6,8 @@ export const useVisibleTopics = () => {
   const [visibleTopics, setVisibleTopics] = useState([]);
   const [visibleVideos, setVisibleVideos] = useState([]);
   const [visiblePointClouds, setVisiblePointClouds] = useState([]);
+  const [visibleStatus, setVisibleStatus] = useState([]);
+  const [visibleDiagnostics, setVisibleDiagnostics] = useState([]);
 
   const handleAddGraph = (newTopic) => {
     // Handle PointCloud2 separately
@@ -47,6 +49,18 @@ export const useVisibleTopics = () => {
     }
   };
 
+  const handleAddStatus = (newTopic) => {
+    if (!visibleStatus.some((topic) => topic.name === newTopic.name)) {
+      setVisibleStatus((prev) => [...prev, newTopic]);
+    }
+  };
+
+  const handleAddDiagnostic = (newTopic) => {
+    if (!visibleDiagnostics.some((topic) => topic.name === newTopic.name)) {
+      setVisibleDiagnostics((prev) => [...prev, newTopic]);
+    }
+  };
+
   const updateVisibleTopics = (updatedTopics) => {
     setVisibleTopics(updatedTopics);
   };
@@ -59,15 +73,29 @@ export const useVisibleTopics = () => {
     setVisiblePointClouds(updatedPointClouds);
   };
 
+  const updateVisibleStatus = (updatedStatus) => {
+    setVisibleStatus(updatedStatus);
+  };
+
+  const updateVisibleDiagnostics = (updatedDiagnostics) => {
+    setVisibleDiagnostics(updatedDiagnostics);
+  };
+
   return {
     visibleTopics,
     visibleVideos,
     visiblePointClouds,
+    visibleStatus,
+    visibleDiagnostics,
     handleAddGraph,
     handleAddVideo,
     handleAddPointCloud,
+    handleAddStatus,
+    handleAddDiagnostic,
     updateVisibleTopics,
     updateVisibleVideos,
     updateVisiblePointClouds,
+    updateVisibleStatus,
+    updateVisibleDiagnostics,
   };
 };

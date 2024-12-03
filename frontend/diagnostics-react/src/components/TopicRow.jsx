@@ -1,5 +1,5 @@
 import React from "react";
-
+import { TOPIC_TYPES } from "../config/topicTypes";
 const TopicRow = ({
   topic,
   isConfigured,
@@ -7,9 +7,13 @@ const TopicRow = ({
   onAddGraph,
   onAddVideo,
   onAddPointCloud,
+  onAddStatus,
+  onAddDiagnostic,
   isVisible,
   isVideoVisible,
   isPointCloudVisible,
+  isStatusVisible,
+  isDiagnosticVisible,
 }) => {
   const handleButtonClick = (e, action) => {
     e.preventDefault(); // Prevent default touch behavior
@@ -29,7 +33,7 @@ const TopicRow = ({
       <td>{topic.type}</td>
       <td className="topic-actions">
         {isConfigured &&
-          topic.type !== "sensor_msgs/msg/PointCloud2" &&
+          !TOPIC_TYPES[topic.type]?.isPointCloud &&
           !isVisible && (
             <button
               onClick={(e) => handleButtonClick(e, () => onAddGraph(topic))}
@@ -38,7 +42,7 @@ const TopicRow = ({
               +
             </button>
           )}
-        {topic.type === "sensor_msgs/msg/Image" && !isVideoVisible && (
+        {TOPIC_TYPES[topic.type]?.isVideo && !isVideoVisible && (
           <button
             onClick={(e) => handleButtonClick(e, () => onAddVideo(topic.name))}
             className="add-graph-btn"
@@ -46,17 +50,30 @@ const TopicRow = ({
             +
           </button>
         )}
-        {topic.type === "sensor_msgs/msg/PointCloud2" &&
-          !isPointCloudVisible && (
-            <button
-              onClick={(e) =>
-                handleButtonClick(e, () => onAddPointCloud(topic))
-              }
-              className="add-graph-btn"
-            >
-              +
-            </button>
-          )}
+        {TOPIC_TYPES[topic.type]?.isPointCloud && !isPointCloudVisible && (
+          <button
+            onClick={(e) => handleButtonClick(e, () => onAddPointCloud(topic))}
+            className="add-graph-btn"
+          >
+            +
+          </button>
+        )}
+        {TOPIC_TYPES[topic.type]?.isStatus && !isStatusVisible && (
+          <button
+            onClick={(e) => handleButtonClick(e, () => onAddStatus(topic))}
+            className="add-graph-btn"
+          >
+            +
+          </button>
+        )}
+        {TOPIC_TYPES[topic.type]?.isDiagnostic && !isDiagnosticVisible && (
+          <button
+            onClick={(e) => handleButtonClick(e, () => onAddDiagnostic(topic))}
+            className="add-graph-btn"
+          >
+            +
+          </button>
+        )}
       </td>
     </tr>
   );

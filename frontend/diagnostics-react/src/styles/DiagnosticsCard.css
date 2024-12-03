@@ -1,0 +1,108 @@
+.diagnostic-card .base-card-content {
+  padding: 0;
+  display: block;
+}
+.diagnostic-card .diagnostic-container {
+  height: 100%;
+  overflow-y: auto;
+  text-align: left;
+  padding: 0.5rem;
+  scrollbar-width: thin;
+  padding-bottom: 2rem;
+}
+.diagnostic-card .diagnostic-values table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.diagnostic-card .diagnostic-values td,
+.diagnostic-card .diagnostic-values th {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.diagnostic-card .diagnostic-values tr:last-child td {
+  border-bottom: none;
+}
+.diagnostic-card .diagnostic-list {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0.5rem;
+}
+.diagnostic-card .diagnostic-entry:not(.single-item) {
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 0 !important;
+  cursor: default;
+}
+
+.diagnostic-card .diagnostic-header {
+  display: flex;
+  align-items: center;
+  padding: 0.1rem;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.diagnostic-card .diagnostic-entry:not(.single-item) .diagnostic-header:hover {
+  background: var(--hover-bg);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.diagnostic-card .diagnostic-message {
+  padding: 0.5rem;
+  background: none !important;
+}
+.diagnostic-card .diagnostic-level {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100px;
+}
+.diagnostic-card .diagnostic-title {
+  flex: 1;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.diagnostic-card .hardware-id {
+  font-family: monospace;
+  font-size: 1.1em;
+}
+
+.diagnostic-card .values-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--card-bg);
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+/* Status colors */
+.diagnostic-card .text-green-500 {
+  color: #10b981;
+  font-weight: 600;
+}
+.diagnostic-card .text-yellow-500 {
+  color: #f59e0b;
+  font-weight: 600;
+}
+.diagnostic-card .text-red-500 {
+  color: #ef4444;
+  font-weight: 600;
+}
+.diagnostic-card .text-blue-500 {
+  color: #627cff;
+  font-weight: 600;
+}
+/* Scrollbar styles */
+.diagnostic-card .diagnostic-container::-webkit-scrollbar {
+  width: 6px;
+}
+.diagnostic-card .diagnostic-container::-webkit-scrollbar-track {
+  background: var(--card-bg);
+}
+.diagnostic-card .diagnostic-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
