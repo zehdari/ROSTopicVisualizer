@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import RealtimeGraph from "./components/CardContainer";
+import CardContainer from "./components/CardContainer";
 import TopicsTable from "./components/TopicsTable";
 import TfTree from "./components/TfTree";
 import TerminalComponent from "./components/Terminal";
@@ -12,7 +12,7 @@ const App = () => {
   const [isTreeOpen, setIsTreeOpen] = useState(false);
 
   const {
-    visibleTopics,
+    visibleGraphs,
     visibleVideos,
     visiblePointClouds,
     visibleStatus,
@@ -35,8 +35,8 @@ const App = () => {
   return (
     <div className="app-container">
       <h1 className="app-header">Talos Diagnostics</h1>
-      <RealtimeGraph
-        visibleTopics={visibleTopics}
+      <CardContainer
+        visibleGraphs={visibleGraphs}
         visibleVideos={visibleVideos}
         visiblePointClouds={visiblePointClouds}
         visibleStatus={visibleStatus}
@@ -56,7 +56,7 @@ const App = () => {
           onAddPointCloud={handleAddPointCloud}
           onAddStatus={handleAddStatus}
           onAddDiagnostic={handleAddDiagnostic}
-          visibleTopics={visibleTopics}
+          visibleGraphs={visibleGraphs}
           visibleVideos={visibleVideos}
           visiblePointClouds={visiblePointClouds}
           visibleStatus={visibleStatus}

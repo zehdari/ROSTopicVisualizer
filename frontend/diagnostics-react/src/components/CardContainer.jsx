@@ -8,7 +8,7 @@ import "../styles/CardContainer.css";
 import { NETWORK_CONFIG } from "../config/networkConfig";
 
 const CardContainer = ({
-  visibleTopics,
+  visibleGraphs,
   visibleVideos,
   visiblePointClouds,
   visibleStatus,
@@ -21,7 +21,7 @@ const CardContainer = ({
 }) => {
   // Combine graphs, videos, and point clouds into a single array with type and timestamp
   const allCards = [
-    ...visibleTopics.map((topic) => ({
+    ...visibleGraphs.map((topic) => ({
       type: "graph",
       data: topic,
       timestamp: topic.timestamp || Date.now(),
@@ -54,7 +54,7 @@ const CardContainer = ({
   ].sort((a, b) => a.timestamp - b.timestamp);
 
   const handleRemoveGraph = (topicName) => {
-    const updatedTopics = visibleTopics.filter(
+    const updatedTopics = visibleGraphs.filter(
       (topic) => topic.name !== topicName
     );
     updateVisibleTopics(updatedTopics);

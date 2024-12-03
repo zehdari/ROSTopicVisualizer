@@ -22,6 +22,7 @@ export const TOPIC_TYPES = {
         stroke: getCSSColor("--color-light-blue"),
       },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/Char": {
@@ -36,6 +37,7 @@ export const TOPIC_TYPES = {
         stroke: getCSSColor("--color-soft-green"),
       },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/Int8": {
@@ -46,6 +48,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/Int16": {
@@ -56,6 +59,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/Int32": {
@@ -66,6 +70,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/Int64": {
@@ -76,6 +81,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/UInt8": {
@@ -86,6 +92,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/UInt16": {
@@ -96,6 +103,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/UInt32": {
@@ -106,6 +114,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/UInt64": {
@@ -116,6 +125,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/Float32": {
@@ -126,6 +136,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   "std_msgs/msg/Float64": {
@@ -136,6 +147,7 @@ export const TOPIC_TYPES = {
     graphKeys: [
       { key: "value", name: "Data", stroke: getCSSColor("--color-soft-green") },
     ],
+    isGraph: true,
   },
 
   // Array Types
@@ -153,6 +165,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
 
   "std_msgs/msg/Int16MultiArray": {
@@ -168,6 +181,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
 
   "std_msgs/msg/Int32MultiArray": {
@@ -183,6 +197,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
 
   "std_msgs/msg/Int64MultiArray": {
@@ -198,6 +213,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
 
   // This one is special
@@ -232,6 +248,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
 
   "std_msgs/msg/UInt16MultiArray": {
@@ -247,6 +264,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
 
   "std_msgs/msg/UInt32MultiArray": {
@@ -262,6 +280,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
   "std_msgs/msg/UInt64MultiArray": {
     parser: (message) => {
@@ -276,6 +295,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
   "std_msgs/msg/Float32MultiArray": {
     parser: (message) => {
@@ -290,6 +310,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
   "std_msgs/msg/Float64MultiArray": {
     parser: (message) => {
@@ -304,6 +325,7 @@ export const TOPIC_TYPES = {
     },
     graphKeys: [],
     isDynamicKeys: true,
+    isGraph: true,
   },
 
   // Other types
@@ -349,6 +371,7 @@ export const TOPIC_TYPES = {
         stroke: getCSSColor("--color-purple"),
       },
     ],
+    isGraph: true,
   },
 
   "geometry_msgs/msg/TwistWithCovarianceStamped": {
@@ -399,6 +422,7 @@ export const TOPIC_TYPES = {
         stroke: getCSSColor("--color-tomato"),
       },
     ],
+    isGraph: true,
   },
 
   "nav_msgs/msg/Odometry": {
@@ -425,6 +449,7 @@ export const TOPIC_TYPES = {
         stroke: getCSSColor("--color-light-yellow"),
       },
     ],
+    isGraph: true,
   },
   "geometry_msgs/msg/WrenchStamped": {
     parser: (message) => ({
@@ -468,6 +493,7 @@ export const TOPIC_TYPES = {
         stroke: getCSSColor("--color-purple"),
       },
     ],
+    isGraph: true,
   },
 
   "sensor_msgs/msg/Image": {

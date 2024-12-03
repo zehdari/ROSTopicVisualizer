@@ -3,7 +3,7 @@ import { TOPICS_CONFIG } from "../config/topicsConfig";
 import { TOPIC_TYPES } from "../config/topicTypes";
 
 export const useVisibleTopics = () => {
-  const [visibleTopics, setVisibleTopics] = useState([]);
+  const [visibleGraphs, setVisibleTopics] = useState([]);
   const [visibleVideos, setVisibleVideos] = useState([]);
   const [visiblePointClouds, setVisiblePointClouds] = useState([]);
   const [visibleStatus, setVisibleStatus] = useState([]);
@@ -17,7 +17,7 @@ export const useVisibleTopics = () => {
     }
 
     // Regular graph handling
-    if (!visibleTopics.some((topic) => topic.name === newTopic.name)) {
+    if (!visibleGraphs.some((topic) => topic.name === newTopic.name)) {
       const { name, type } = newTopic;
       const configTopic = TOPICS_CONFIG.find((topic) => topic.name === name);
       if (configTopic) {
@@ -61,7 +61,7 @@ export const useVisibleTopics = () => {
     }
   };
 
-  const updateVisibleTopics = (updatedTopics) => {
+  const updateVisibleGraphs = (updatedTopics) => {
     setVisibleTopics(updatedTopics);
   };
 
@@ -82,7 +82,7 @@ export const useVisibleTopics = () => {
   };
 
   return {
-    visibleTopics,
+    visibleGraphs,
     visibleVideos,
     visiblePointClouds,
     visibleStatus,
@@ -92,7 +92,7 @@ export const useVisibleTopics = () => {
     handleAddPointCloud,
     handleAddStatus,
     handleAddDiagnostic,
-    updateVisibleTopics,
+    updateVisibleGraphs,
     updateVisibleVideos,
     updateVisiblePointClouds,
     updateVisibleStatus,

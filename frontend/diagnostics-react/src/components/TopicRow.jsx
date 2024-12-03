@@ -2,14 +2,13 @@ import React from "react";
 import { TOPIC_TYPES } from "../config/topicTypes";
 const TopicRow = ({
   topic,
-  isConfigured,
   onToggleDetails,
   onAddGraph,
   onAddVideo,
   onAddPointCloud,
   onAddStatus,
   onAddDiagnostic,
-  isVisible,
+  isGraphVisible,
   isVideoVisible,
   isPointCloudVisible,
   isStatusVisible,
@@ -32,16 +31,14 @@ const TopicRow = ({
       <td className="topic-name">{topic.name}</td>
       <td>{topic.type}</td>
       <td className="topic-actions">
-        {isConfigured &&
-          !TOPIC_TYPES[topic.type]?.isPointCloud &&
-          !isVisible && (
-            <button
-              onClick={(e) => handleButtonClick(e, () => onAddGraph(topic))}
-              className="add-graph-btn"
-            >
-              +
-            </button>
-          )}
+        {TOPIC_TYPES[topic.type]?.isGraph && !isGraphVisible && (
+          <button
+            onClick={(e) => handleButtonClick(e, () => onAddGraph(topic))}
+            className="add-graph-btn"
+          >
+            +
+          </button>
+        )}
         {TOPIC_TYPES[topic.type]?.isVideo && !isVideoVisible && (
           <button
             onClick={(e) => handleButtonClick(e, () => onAddVideo(topic.name))}

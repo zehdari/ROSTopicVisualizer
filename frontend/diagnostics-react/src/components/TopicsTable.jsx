@@ -16,7 +16,7 @@ const TopicsTable = ({
   onAddPointCloud,
   onAddStatus,
   onAddDiagnostic,
-  visibleTopics,
+  visibleGraphs,
   visibleVideos,
   visiblePointClouds,
   visibleStatus,
@@ -505,7 +505,7 @@ const TopicsTable = ({
                               onAddPointCloud={handleAddPointCloud}
                               onAddStatus={handleAddStatus}
                               onAddDiagnostic={handleAddDiagnostic}
-                              isVisible={visibleTopics.some(
+                              isGraphVisible={visibleGraphs.some(
                                 (vt) => vt.name === topic.name
                               )}
                               isVideoVisible={visibleVideos.some(
